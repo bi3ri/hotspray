@@ -1,0 +1,23 @@
+<launch>
+  <node name="tsdf_node" pkg="yak_ros" type="yak_ros_node" output="screen">
+      <remap from="~input_point_cloud" to="/point_cloud/"/>
+      <remap from="~input_depth_image" to="/d435/depth/image_raw"/>
+
+    <param name="tsdf_frame" value="tsdf_origin"/>
+    <param name="generate_mesh" value="$(find yak_ros)/demo/output"/>
+
+    <!--rosparam param="camera_matrix">[411.8604736328125, 0.0, 325.3558044433594, 0.0, 411.8604736328125, 246.15582275390625, 0.0, 0.0, 1.0]</rosparam-->
+    <rosparam param="camera_matrix">[695.9951171875, 0.0, 640.0, 0.0, 695.9951171875, 360.0, 0.0, 0.0, 1.0]</rosparam>
+
+    <param name="cols" value="1280"/>
+    <param name="rows" value="720"/>
+
+    <param name="volume_resolution" value="0.001"/>
+    <!-- <param name="volume_x" value="320"/>
+    <param name="volume_y" value="320"/>
+    <param name="volume_z" value="320"/> -->
+        <param name="volume_x" value="640"/>
+    <param name="volume_y" value="640"/>
+    <param name="volume_z" value="320"/>
+  </node>
+</launch>

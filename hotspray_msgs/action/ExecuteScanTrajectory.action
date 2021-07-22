@@ -1,0 +1,8 @@
+# Goal
+string scan_trajectory					# The name of the scan trajectory
+---
+# Result
+bool success						# True on success, false otherwise
+---
+# Feedback
+int32 ExecutionProcess			

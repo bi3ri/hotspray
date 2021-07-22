@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<launch>
+  <node name="plane_slicer_example" pkg="hotspray_toolpath" type="plane_slicer_example_node" output="screen">
+    <rosparam ns="plane_slicer_rastering">
+      raster_spacing: 0.025
+      point_spacing: 0.005
+      raster_rot_offset: 0.77
+      min_hole_size: 0.02
+      min_segment_size: 0.01
+      search_radius: 0.02
+    </rosparam>
+  </node>
+  <include file="$(find noether)/launch/tool_path_planner_server.launch"/>
+</launch>

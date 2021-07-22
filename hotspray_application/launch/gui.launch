@@ -1,0 +1,7 @@
+<launch>
+
+  <node name="hotspray_application" pkg="hotspray_application" type="hotspray_application_node" respawn="false" output="screen">
+
+  </node>
+
+</launch>

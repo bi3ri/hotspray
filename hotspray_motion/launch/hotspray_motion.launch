@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<launch>
+  <node name="hotspray_motion" pkg="hotspray_motion" type="hotspray_motion_node" output="screen">
+
+  </node>
+</launch>

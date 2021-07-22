@@ -1,0 +1,7 @@
+
+- git: {local-name: universal_robot, uri: 'https://github.com/ros-industrial/universal_robot.git', version: melodic-devel}
+- git: {local-name: ros_industrial_cmake_boilerplate, uri: 'https://github.com/ros-industrial/ros_industrial_cmake_boilerplate.git', version: master}
+- git: {local-name: noether, uri: 'https://github.com/ros-industrial/noether.git', version: master}
+- git: {local-name: tesseract, uri: 'https://github.com/ros-industrial/tesseract.git', version: 6ca5a437107cd72eb1b45f1ada5075e980524b06}
+- git: {local-name: tesseract_ros, uri: 'https://github.com/ros-industrial/tesseract_ros.git', version: c767365c91017bdf72d92f6b87b085e7c5b716a2}
+- git: {local-name: tesseract_planning, uri: 'https://github.com/ros-industrial/tesseract_planning.git', version: 6ca5a437107cd72eb1b45f1ada5075e980524b06}

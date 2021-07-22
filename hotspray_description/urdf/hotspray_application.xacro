@@ -1,0 +1,62 @@
+<?xml version="1.0"?>
+
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="hotspray_description">
+  <xacro:property name="sim" default="true"/>
+  <xacro:property name="joint_limited" default="true"/>
+  <xacro:property name="prefix" value=""/>
+  <xacro:arg name="transmission_hw_interface" default="hardware_interface/PositionJointInterface" />
+
+  <xacro:include filename="$(find hotspray_description)/urdf/hotspray_tool.xacro"/>
+  <xacro:include filename="$(find hotspray_description)/urdf/hotspray_workcell.xacro"/>
+  <xacro:include filename="$(find ur_description)/urdf/ur5.urdf.xacro" />
+  
+  <!-- robot -->
+    <xacro:if value="${sim}">
+        <xacro:include filename="$(find ur_description)/urdf/common.gazebo.xacro" />
+    </xacro:if>
+
+    <!-- arm -->
+    <xacro:if value="${joint_limited}">
+      <xacro:ur5_robot prefix="${prefix}" joint_limited="true"
+        shoulder_pan_lower_limit="${-pi}" shoulder_pan_upper_limit="${pi}"
+        shoulder_lift_lower_limit="${-pi}" shoulder_lift_upper_limit="${pi}"
+        elbow_joint_lower_limit="${-pi}" elbow_joint_upper_limit="${pi}"
+        wrist_1_lower_limit="${-pi}" wrist_1_upper_limit="${pi}"
+        wrist_2_lower_limit="${-pi}" wrist_2_upper_limit="${pi}"
+        wrist_3_lower_limit="${-pi}" wrist_3_upper_limit="${pi}"
+        transmission_hw_interface="$(arg transmission_hw_interface)"
+      />
+    </xacro:if>
+    <xacro:unless value="${joint_limited}">
+        <xacro:ur5_robot prefix="${prefix}" joint_limited="false"
+          transmission_hw_interface="$(arg transmission_hw_interface)"
+        />
+    </xacro:unless>
+
+  <!-- link world->robot -->
+   <link name="world"/>
+      <joint name="world_to_robot" type="fixed">
+      <parent link="world"/>
+      <child link="base_link"/>
+      <origin  xyz="0 0 0.501" rpy="0 0 ${7 * pi/4}" />
+    </joint>
+
+  <!-- table -->
+    <xacro:hotspray_workcell parent="world">
+      <origin  xyz="0 0 0" rpy="0 0 0" />
+    </xacro:hotspray_workcell> 
+  
+  <!-- scan area -->
+    <link name="tsdf_origin"/>
+      <joint name="world_to_tsdf" type="fixed">
+      <parent link="world"/>
+      <child link="tsdf_origin"/>
+      <origin  xyz="0.2 0.2 0.55" rpy="0 0 0" />
+    </joint>
+  
+  <!-- tool  -->
+    <xacro:hotspray_tool parent="tool0" prefix="${prefix}" sim="${sim}">
+      <origin  xyz="0 0 0" rpy="0 0 ${pi/4}" />
+    </xacro:hotspray_tool>
+
+</robot>

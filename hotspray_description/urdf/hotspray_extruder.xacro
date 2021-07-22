@@ -1,0 +1,39 @@
+<?xml version="1.0" ?>
+
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <xacro:macro name="hotspray_extruder" params="parent *origin spray_distance:=${'10.0'}">
+  
+    <link name="hotspray_extruder">
+      <!-- TODO: inertia hotspray-->
+      <inertial>
+        <origin  xyz="0 0 0" rpy="0 0 0" />
+        <mass value="0" />
+        <inertia ixx="0.00" ixy="0" ixz="0" iyy="0.00" iyz="0" izz="0.00" />
+      </inertial>
+      <visual>
+        <origin  xyz="0 0 0" rpy="0 0 0" />
+        <geometry>
+          <mesh filename="package://hotspray_description/meshes/hotspray_extruder.stl" scale="0.001 0.001 0.001" />
+        </geometry>
+        <material name="">
+          <color rgba="0.8 0.8 0.9 1" />
+        </material>
+      </visual>
+      <!--collision>
+        <xacro:insert_block name="origin"/>
+        <geometry>
+          <box size="0.195 0.04 0.27"/>
+        </geometry>
+      </collision-->
+    </link>
+
+    <!--joint between fixture and hotspray-->
+    <joint name="hotspray_extruder_joint" type="fixed">
+      <xacro:insert_block name="origin"/>
+      <parent link="${parent}" />
+      <child link="hotspray_extruder" />
+    </joint>
+
+  </xacro:macro>
+</robot>

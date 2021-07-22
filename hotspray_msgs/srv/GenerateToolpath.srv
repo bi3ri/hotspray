@@ -1,0 +1,7 @@
+#request
+string mesh_path
+---
+#response
+bool success
+noether_msgs/ToolPaths[] tool_paths	                # The resulting paths
+bool[] tool_path_validities		# True when the tool path in 'tool_raster_paths' with the same index is valid.

@@ -1,0 +1,5 @@
+<?xml version="1.0"?>
+<launch>
+  <node name="hotspray_application" pkg="hotspray_application" type="hotspray_application_node" output="screen">
+  </node>
+</launch>
