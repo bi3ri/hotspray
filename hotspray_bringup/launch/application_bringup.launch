@@ -5,33 +5,23 @@
   <arg name="paused" default="true"/>
   <arg name="gazebo_gui" default="true"/>
 
-
-  <!-- moveit -->
-  <include file="$(find hotspray_bringup)/launch/hotspray_ur5_moveit.launch">
-    <arg name="sim_robot" value="$(arg sim_robot)"/>
+  <!-- simulation -->
+  <include file="$(find hotspray_bringup)/launch/simulation_bringup.launch" >
+    <arg name="sim_robot" default="$(arg sim_robot)"/>
+    <arg name="paused" default="$(arg paused)"/>
+    <arg name="gazebo_gui" default="$(arg gazebo_gui)"/>
   </include>
 
-  <!-- gazebo -->
-  <include file="$(find hotspray_bringup)/launch/hotspray_ur5_gazebo.launch" >
-    <arg name="paused" value="$(arg paused)"/>
-    <arg name="gazebo_gui" value="$(arg gazebo_gui)"/>
-  </include>
-
-  <!-- yak -->
-  <include file="$(find hotspray_bringup)/launch/hotspray_yak.launch">
-  </include>
-
-  <!-- toolpath -->
-  <include file="$(find hotspray_toolpath)/launch/hotspray_toolpath_generator.launch">
-  </include>
-
-  <!-- motion --> 
-  <include file="$(find hotspray_motion)/launch/hotspray_motion.launch">
+  <!-- utility -->
+  <include file="$(find hotspray_bringup)/launch/utility_bringup.launch" >
+    <arg name="sim_robot" default="$(arg sim_robot)"/>
+    <arg name="paused" default="$(arg paused)"/>
+    <arg name="gazebo_gui" default="$(arg gazebo_gui)"/>
   </include>
 
   <!-- application -->
-  <!-- <include file="$(find hotspray_application)/launch/hotspray_application.launch">
-  </include> -->
+  <include file="$(find hotspray_application)/launch/hotspray_application.launch">
+  </include>
 
   <!-- <include file="$(find hotspray_bringup)/launch/rviz.launch"/> -->
 

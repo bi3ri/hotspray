@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<launch>
+
+  <arg name="sim_robot" default="true"/>
+  <arg name="paused" default="true"/>
+  <arg name="gazebo_gui" default="true"/>
+
+  <!-- moveit -->
+  <include file="$(find hotspray_bringup)/launch/hotspray_ur5_moveit.launch">
+    <arg name="sim_robot" value="$(arg sim_robot)"/>
+  </include>
+
+  <!-- gazebo -->
+  <include file="$(find hotspray_bringup)/launch/hotspray_ur5_gazebo.launch" >
+    <arg name="paused" value="$(arg paused)"/>
+    <arg name="gazebo_gui" value="$(arg gazebo_gui)"/>
+  </include>
+
+</launch>
