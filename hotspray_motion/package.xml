@@ -41,16 +41,16 @@
   <depend>trajopt_utils</depend>
   <depend>trajopt_sco</depend>
 
-  <depend>descartes_light</depend>
-  <depend>descartes_ikfast</depend>
-  <depend>descartes_samplers</depend>
+  <!-- <depend>descartes_light</depend> -->
+  <!-- <depend>descartes_ikfast</depend> -->
+  <!-- <depend>descartes_samplers</depend> -->
 
   <depend>tf2</depend>
   
-  <depend>iterative_spline_parameterization</depend>
+  <!-- <depend>iterative_spline_parameterization</depend> -->
 
-  <depend>yaml_cpp_vendor</depend>
-  <depend>action_msgs</depend>
+  <!-- <depend>yaml_cpp_vendor</depend> -->
+  <!-- <depend>action_msgs</depend> -->
   <depend>visualization_msgs</depend>
 
 </package>

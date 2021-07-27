@@ -19,7 +19,7 @@ find_package(catkin REQUIRED COMPONENTS
 find_package(Eigen3 REQUIRED)
 find_package(console_bridge REQUIRED)
 find_package(descartes_light REQUIRED)
-find_package(descartes_samplers REQUIRED)
+# find_package(descartes_samplers REQUIRED)
 find_package(ompl REQUIRED)
 find_package(tesseract_environment REQUIRED)
 find_package(tesseract_common REQUIRED)

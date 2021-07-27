@@ -2,8 +2,11 @@ cmake_minimum_required(VERSION 2.8.3)
 project(hotspray_application)
 add_definitions(-std=c++11)
 
+#TODO this should not be needed
+find_package(rosbag REQUIRED) 
 
 find_package(catkin REQUIRED COMPONENTS
+rosbag
 interactive_markers
 moveit_core
 moveit_ros_planning
@@ -15,9 +18,11 @@ pluginlib
 geometric_shapes
 pcl_ros
 pcl_conversions
-rosbag
+std_msgs
+
 roslib
 roscpp
+std_msgs
 tf2_ros
 tf2_eigen
 tf2_geometry_msgs
@@ -31,6 +36,7 @@ find_package( yaml-cpp REQUIRED )
 
 find_package( Boost REQUIRED system filesystem date_time thread)
 
+catkin_metapackage()
 
 catkin_package(
   LIBRARIES
@@ -47,6 +53,8 @@ catkin_package(
     tf2_geometry_msgs
     hotspray_utils
     roscpp
+    rosbag
+    std_msgs
   DEPENDS 
     Eigen3 
     yaml-cpp
@@ -60,14 +68,17 @@ add_executable(hotspray_application_node
   include/hotspray_application.hpp
 )
 
-add_dependencies(hotspray_application_node ${catkin_EXPORTED_TARGETS})
 
 
 target_link_libraries(hotspray_application_node
   ${catkin_LIBRARIES}
+  #TODO this should not be needed
+  ${rosbag_LIBRARIES}
   ${Boost_LIBRARIES}
   ${YAML_CPP_LIBRARIES}
 )
+
+add_dependencies(hotspray_application_node ${catkin_EXPORTED_TARGETS})
 
 
 install(TARGETS ${PROJECT_NAME}_node

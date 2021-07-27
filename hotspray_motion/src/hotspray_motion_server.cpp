@@ -23,7 +23,9 @@
 #include <tesseract_common/macros.h>
 TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <ros/ros.h>
-#include <descartes_samplers/evaluators/euclidean_distance_edge_evaluator.h>
+// #include <descartes_samplers/evaluators/euclidean_distance_edge_evaluator.h>
+#include <descartes_light/edge_evaluators/euclidean_distance_edge_evaluator.h>
+
 
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
@@ -233,7 +235,7 @@ hotspray_msgs::GenerateSprayTrajectory::Response &res)
   // Create monitor
   monitor_ = std::make_shared<tesseract_monitoring::EnvironmentMonitor>(env_, EXAMPLE_MONITOR_NAMESPACE);
   if (rviz_)
-    monitor_->startPublishingEnvironment(tesseract_monitoring::EnvironmentMonitor::UPDATE_ENVIRONMENT);
+    monitor_->startPublishingEnvironment(); //tesseract_monitoring::EnvironmentMonitor::UPDATE_ENVIRONMENT);
 
   // Create plotting tool
   tesseract_rosutils::ROSPlottingPtr plotter = std::make_shared<tesseract_rosutils::ROSPlotting>(monitor_->getSceneGraph()->getRoot());

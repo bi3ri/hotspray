@@ -44,7 +44,7 @@ bool HotsprayApplication::createScanTrajectory(trajectory_msgs::JointTrajectory&
         try{
         tf_listener.lookupTransform("/world", "/tcp_frame", ros::Time(0), tf);
         }
-        catch (tf::TransformException &ex) {
+        catch (tf::TransformException &ex) { 
             ROS_ERROR("hallo");
         }
         
@@ -174,7 +174,7 @@ bool HotsprayApplication::run()
 
     // executeTrajectory(scan_trajectory);
 
-    generateMesh();
+    // generateMesh();
 
     std::vector<geometry_msgs::PoseArray> spray_pose_arrays;
     generateToolpath(spray_pose_arrays);
@@ -205,7 +205,7 @@ bool HotsprayApplication::run()
             eigen_pose.pretranslate(Eigen::Vector3d(0.2, 0.2, 0.55));
             //eigen_pose.rotate(r);
             tf::poseEigenToMsg(eigen_pose, pose);
-            // std::cout << pose << std::endl;njfdkbgfjnfdskknfd;knf;knkn;  
+            // std::cout << pose << std::endl;
         }
         i++;
     }

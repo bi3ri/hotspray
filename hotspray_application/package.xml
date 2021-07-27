@@ -11,31 +11,37 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
-  <build_depend>pluginlib</build_depend>
-  <build_depend>eigen</build_depend>
-  <build_depend>moveit_core</build_depend>
-  <build_depend>moveit_ros_planning</build_depend>
-  <build_depend>moveit_ros_planning_interface</build_depend>
-  <build_depend>moveit_ros_perception</build_depend>
-  <build_depend>interactive_markers</build_depend>
-  <build_depend>geometric_shapes</build_depend>
-  <build_depend>moveit_visual_tools</build_depend>
-  <build_depend>rviz_visual_tools</build_depend>
-  <build_depend>pcl_ros</build_depend>
-  <build_depend>pcl_conversions</build_depend>
-  <build_depend>rosbag</build_depend>
-  <build_depend>tf2_ros</build_depend>
-  <build_depend>tf2_eigen</build_depend>
-  <build_depend>tf2_geometry_msgs</build_depend>
-  <build_depend>message_runtime</build_depend>
-  <build_depend>roscpp</build_depend>
-  <build_depend>roslib</build_depend>
-  <build_depend>hotspray_msgs</build_depend>
+  <depend>pluginlib</depend>
+  <depend>eigen</depend>
+  <depend>moveit_core</depend>
+  <depend>moveit_ros_planning</depend>
+  <depend>moveit_ros_planning_interface</depend>
+  <depend>moveit_ros_perception</depend>
+  <depend>interactive_markers</depend>
+  <depend>geometric_shapes</depend>
+  <depend>moveit_visual_tools</depend>
+  <depend>rviz_visual_tools</depend>
+  <depend>pcl_ros</depend>
+  <depend>pcl_conversions</depend>
+  <depend>tf2_ros</depend>
+  <depend>tf2_eigen</depend>
+  <depend>tf2_geometry_msgs</depend>
+  <depend>message_runtime</depend>
+  <depend>roscpp</depend>
+  <depend>std_msgs</depend>
+  <depend>rosbag</depend>
+  <depend>opw_kinematics</depend>
+
+
+  <depend>roslib</depend>
+  <depend>hotspray_msgs</depend>
   <depend>hotspray_utils</depend>
+  <depend>yaml-cpp</depend>
+  <depend>message_generation</depend>
 
 
 
-  <exec_depend>pluginlib</exec_depend>
+  <!-- <exec_depend>pluginlib</exec_depend>
   <exec_depend>moveit_core</exec_depend>
   <exec_depend>moveit_commander</exec_depend>
   <exec_depend>moveit_fake_controller_manager</exec_depend>
@@ -50,19 +56,20 @@
   <exec_depend>pcl_ros</exec_depend>
   <exec_depend>pcl_conversions</exec_depend>
   <exec_depend>rosbag</exec_depend>
+  <exec_depend>std_msgs</exec_depend>
+
   <exec_depend>rviz</exec_depend>
   <exec_depend>tf2_ros</exec_depend>
   <exec_depend>tf2_eigen</exec_depend>
   <exec_depend>tf2_geometry_msgs</exec_depend>
   <exec_depend>xacro</exec_depend>
   <exec_depend>roscpp</exec_depend>
-  <exec_depend>roslib</exec_depend>
-  <exec_depend>message_generation</exec_depend>
 
-  <build_depend>yaml-cpp</build_depend>
+  <exec_depend>roslib</exec_depend>
+
   <build_export_depend>yaml-cpp</build_export_depend>
   <exec_depend>yaml-cpp</exec_depend>
-  
+   -->
   <!-- <exec_depend>hotspray_utils</exec_depend> -->
 
 
