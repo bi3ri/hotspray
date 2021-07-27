@@ -1,8 +1,6 @@
-# Scan and Spray application
-This project if forked from <a href="https://github.com/rosin-project/automatica18_scan_and_plan_demo">automatica18_scan_and_plan_demo</a>
+## HOTSPRAY
 
-## Application implements
-- `godel` (Scan and Plan): https://github.com/ros-industrial-consortium/godel
+
 
 
 ## Installation
@@ -17,11 +15,16 @@ git clone https://github.com/bierm4nn/hotspray_demo.git
 
 # Download dependencies
 wstool init .
-wstool merge ~/hotspray_ws/hotspray_demo/hotspray_demo.rosinstall
+wstool merge ~/hotspray_ws/src/hotspray/hotspray.rosinstall
 wstool up
 
+wstool merge --merge-keep ~/hotspray_ws/src/tesserct/dependencies.rosinstall
+wstool merge --merge-keep ~/hotspray_ws/src/tesseract_planning/dependencies.rosinstall
+wstool up
+
+
 # Reset ROS_PACKAGE_PATH
-source /opt/ros/kinetic/setup.bash
+source /opt/ros/noetic/setup.bash
 
 # Install dependencies 
 rosdep update && rosdep install -y --from-paths ~/hotspray_ws/src --ignore-src 
@@ -45,11 +48,6 @@ sudo apt-get install librealsense2-utils
 
 ```
 
-## Qt Glyph Loading Segfault (Kinetic)
-
-Rviz on Kinetic is prone to a segmentation fault caused by internal functions in the Qt library. Our current work-around is to set the following environment variable:
-
-export QT_NO_FT_CACHE=1
 
 
 
@@ -66,16 +64,40 @@ roslaunch hotspray_bringup application_bringup.launch sim_robot:=false
 
 ```
 
-## Scan and Plan: Remove local scan_parameter cache
-Make sure to clear possible local `godel_robot_scan_parameters` since they would overwrite the ones of this repo (`hotspray_bringup/config/robot_scan.yaml`).
 
-```shell
-rm -f ~/.ros/godel_robot_scan_parameters.msg
-```
+# Troubleshooting
 
-## Systems settings for real devices
+# Qt Glyph Loading Segfault (Kinetic)
 
+Rviz on Kinetic is prone to a segmentation fault caused by internal functions in the Qt library. Our current work-around is to set the following environment variable:
 
+export QT_NO_FT_CACHE=1
 
 
-# hotspray
+
+
+# Dependencies for packages
+
+# YAK
+# CUDA
+sudo apt update
+sudo apt install -y nvidia-cuda-toolkit 
+
+
+
+# Tesseract
+sudo add-apt-repository ppa:ros-industrial/ppa
+sudo apt-get update
+
+sudo apt install -y 
+libbullet-dev libbullet-extras-dev ros-noetic-fcl ros-noetic-taskflow 
+
+sudo apt install ros-noetic-opw-kinematics 
+
+# Tesseract_ros
+sudo apt-get install ros-noetic-octomap-ros
+
+
+
+# Tesseract Python (not used until now)
+sudo apt install swig
