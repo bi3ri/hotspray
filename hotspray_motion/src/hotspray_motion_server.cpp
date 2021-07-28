@@ -255,67 +255,6 @@ hotspray_msgs::GenerateSprayTrajectory::Response &res)
   CompositeInstruction program("DEFAULT", CompositeInstructionOrder::ORDERED, mi);
   createProgramm(program, req.poses);
 
-                    // // Create Profiles
-                    // //auto descartes_plan_profile = std::make_shared<tesseract_planning::DescartesDefaultPlanProfileD>();
-                    // auto trajopt_plan_profile = std::make_shared<tesseract_planning::TrajOptDefaultPlanProfile>();
-                    // auto ompl_plan_profile = std::make_shared<tesseract_planning::OMPLDefaultPlanProfile>();
-                    // auto trajopt_composite_profile = std::make_shared<tesseract_planning::TrajOptDefaultCompositeProfile>();
-
-                    // auto cur_state = env_->getCurrentState();
-
-                    // // Create a seed
-                    // CompositeInstruction seed = generateSeed(program, cur_state, env_);
-
-                    // // Create Planning Request
-                    // tesseract_planning::PlannerRequest request;
-                    // request.seed = seed;
-                    // request.instructions = program;
-                    // request.env = env_;
-                    // request.env_state = cur_state;
-
-                    // // // Solve Descartes Plan
-                    // // tesseract_planning::PlannerResponse descartes_response;
-                    // // tesseract_planning::DescartesMotionPlannerD descartes_planner;
-                    // // descartes_planner.plan_profiles["DEFAULT"] = descartes_plan_profile;
-                    // // descartes_planner.problem_generator = tesseract_planning::DefaultDescartesProblemGenerator<double>;
-                    // // auto descartes_status = descartes_planner.solve(request, descartes_response);
-                    // // assert(descartes_status);
-
-                    //   // Solve OMPL Plan
-                    // tesseract_planning::PlannerResponse ompl_response;
-                    // tesseract_planning::OMPLMotionPlanner ompl_planner;
-                    // ompl_planner.plan_profiles["DEFAULT"] = ompl_plan_profile;
-                    // ompl_planner.problem_generator = tesseract_planning::DefaultOMPLProblemGenerator;
-                    // auto ompl_status = ompl_planner.solve(request, ompl_response);
-                    // assert(ompl_status);
-
-                    // // Plot Descartes Trajectory
-                    // if (plotter)
-                    // {
-                    //   plotter->waitForInput();
-                    //   plotter->plotTrajectory(toJointTrajectory(ompl_response.results), env_->getStateSolver());
-                    // }
-
-                    // // Update Seed
-                    // // request.seed = descartes_response.results;
-                    // request.seed = ompl_response.results;
-
-
-                    // // Solve TrajOpt Plan
-                    // tesseract_planning::PlannerResponse trajopt_response;
-                    // tesseract_planning::TrajOptMotionPlanner trajopt_planner;
-                    // trajopt_planner.problem_generator = tesseract_planning::DefaultTrajoptProblemGenerator;
-                    // trajopt_planner.plan_profiles["DEFAULT"] = trajopt_plan_profile;
-                    // trajopt_planner.composite_profiles["DEFAULT"] = trajopt_composite_profile;
-                    // auto trajopt_status = trajopt_planner.solve(request, trajopt_response);
-                    // assert(trajopt_status);
-
-                    // if (plotter)
-                    // {
-                    //   plotter->waitForInput();
-                    //   plotter->plotTrajectory(toJointTrajectory(trajopt_response.results), env_->getStateSolver());
-                    // }
-
     // Create Process Planning Server
     ProcessPlanningServer planning_server(std::make_shared<ROSProcessEnvironmentCache>(monitor_), 5);
     planning_server.loadDefaultProcessPlanners();
@@ -332,12 +271,12 @@ hotspray_msgs::GenerateSprayTrajectory::Response &res)
 
     // Create TrajOpt Profile
     auto trajopt_plan_profile = std::make_shared<tesseract_planning::TrajOptDefaultPlanProfile>();
-    trajopt_plan_profile->cartesian_coeff = Eigen::VectorXd::Constant(6, 1, 1); 
-    trajopt_plan_profile->cartesian_coeff(0) = 0.5; 
-    trajopt_plan_profile->cartesian_coeff(1) = 0.5; 
-    trajopt_plan_profile->cartesian_coeff(2) = 0.5; 
-    trajopt_plan_profile->cartesian_coeff(3) = 0.1; 
-    trajopt_plan_profile->cartesian_coeff(4) = 0.1; 
+    trajopt_plan_profile->cartesian_coeff = Eigen::VectorXd::Constant(6, 1, 10); 
+    // trajopt_plan_profile->cartesian_coeff(0) = 2.0; 
+    // trajopt_plan_profile->cartesian_coeff(1) = 2.0; 
+    // trajopt_plan_profile->cartesian_coeff(2) = 2.0; 
+    trajopt_plan_profile->cartesian_coeff(3) = 0.2; 
+    trajopt_plan_profile->cartesian_coeff(4) = 0.2; 
     trajopt_plan_profile->cartesian_coeff(5) = 0.0;
 
     auto trajopt_composite_profile = std::make_shared<tesseract_planning::TrajOptDefaultCompositeProfile>();
@@ -357,18 +296,11 @@ hotspray_msgs::GenerateSprayTrajectory::Response &res)
     trajopt_composite_profile->smooth_jerks = true;
     trajopt_composite_profile->jerk_coeff = Eigen::VectorXd::Constant(6, 1, 0.5); // da es hier um die gelenke geht, geht es wahrscheinlich darum das die gelenke zittern und nicht der tcp. deswegen waere es besser wenn hier alles niedrig einstellt wird
 
-    // auto trajopt_solver_profile = std::make_shared<tesseract_planning::TrajOptDefaultSolverProfile>();
-    // trajopt_solver_profile->convex_solver = sco::ModelType::OSQP;
-    // trajopt_solver_profile->opt_info.max_iter = 200;
-    // trajopt_solver_profile->opt_info.min_approx_improve = 1e-3; // minimum ratio true_improve/approx_improve
-    //                                                             // to accept step
-    // trajopt_solver_profile->opt_info.min_trust_box_size = 1e-5; // if trust region gets any smaller, exit and
-    //                                                             // report convergence
 
     //Add profile to Dictionary
     planning_server.getProfiles()->addProfile<tesseract_planning::TrajOptPlanProfile>("CARTESIAN", trajopt_plan_profile);
-    planning_server.getProfiles()->addProfile<tesseract_planning::TrajOptCompositeProfile>("DEFAULT",
-                                                                                          trajopt_composite_profile);
+    // planning_server.getProfiles()->addProfile<tesseract_planning::TrajOptCompositeProfile>("DEFAULT",
+    //                                                                                       trajopt_composite_profile);
     // planning_server.getProfiles()->addProfile<tesseract_planning::TrajOptSolverProfile>("DEFAULT",
     
                                                                                         

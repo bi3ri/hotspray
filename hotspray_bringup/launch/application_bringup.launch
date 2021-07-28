@@ -12,8 +12,8 @@
     <arg name="gazebo_gui" default="$(arg gazebo_gui)"/>
   </include>
 
-  <!-- utility -->
-  <include file="$(find hotspray_bringup)/launch/utility_bringup.launch" >
+  <!-- utils -->
+  <include file="$(find hotspray_bringup)/launch/utils_bringup.launch" >
     <arg name="sim_robot" default="$(arg sim_robot)"/>
     <arg name="paused" default="$(arg paused)"/>
     <arg name="gazebo_gui" default="$(arg gazebo_gui)"/>
