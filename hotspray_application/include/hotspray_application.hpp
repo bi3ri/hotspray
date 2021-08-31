@@ -22,6 +22,8 @@
 
 #include <hotspray_utils/hotspray_utils.h>
 #include "hotspray_msgs/GenerateSprayTrajectory.h"
+#include "tubular_toolpath_creator/GenerateTubularToolpath.h"
+
 
 
 // typedef actionlib::SimpleActionClient<hotspray_msgs::ExecuteScanTrajectoryAction> Client;
@@ -38,6 +40,7 @@ private:
     ros::ServiceClient mesh_client_;
     ros::ServiceClient toolpath_client_;
     ros::ServiceClient trajectory_client_;
+    ros::ServiceClient tubular_toolpath_client_;
     moveit_action_client_ptr moveit_action_client_ptr_;
 
     std::string mesh_path_;
@@ -54,6 +57,8 @@ bool createScanTrajectory(trajectory_msgs::JointTrajectory& trajectory);
 bool generateMesh();
 
 bool generateToolpath(std::vector<geometry_msgs::PoseArray>& pose_arrays);
+
+bool generateTubularToolpath(std::vector<geometry_msgs::PoseArray>& pose_arrays);
 
 bool generateTrajectory(std::vector<geometry_msgs::PoseArray>& pose_arrays, trajectory_msgs::JointTrajectory& trajectory);
 

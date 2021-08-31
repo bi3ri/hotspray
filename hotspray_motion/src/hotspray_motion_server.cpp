@@ -82,15 +82,24 @@ HotsprayMotionServer::HotsprayMotionServer(ros::NodeHandle nh) : //, std::string
     rviz_(true),
     plotting_(true)
 {
-    nh_.getParam("arm_controller/joints", joint_names_);
+    // nh_.getParam("arm_controller/joints", joint_names_);
 
-    home_joint_pos_ = Eigen::VectorXd::Constant(6, 1, 0);
-    home_joint_pos_(0) = 2.25;
-    home_joint_pos_(1) = -1.50;
-    home_joint_pos_(2) = 1.50;
-    home_joint_pos_(3) = 0.0;
-    home_joint_pos_(4) = 1.50;
-    home_joint_pos_(5) = -0.85;
+      joint_names_.push_back("joint_a1");
+      joint_names_.push_back("joint_a2");
+      joint_names_.push_back("joint_a3");
+      joint_names_.push_back("joint_a4");
+      joint_names_.push_back("joint_a5");
+      joint_names_.push_back("joint_a6");
+      joint_names_.push_back("joint_a7");
+
+    home_joint_pos_ = Eigen::VectorXd::Constant(7, 1, 0);
+    home_joint_pos_(0) = 1.8850;
+    home_joint_pos_(1) = 0.6364;
+    home_joint_pos_(2) = -0.0492;
+    home_joint_pos_(3) = -0.9372;
+    home_joint_pos_(4) = 0.4753;
+    home_joint_pos_(5) = 0.0347;
+    home_joint_pos_(6) = 0.1856;
 }
 
 
@@ -265,7 +274,7 @@ hotspray_msgs::GenerateSprayTrajectory::Response &res)
     tesseract_planning::TrajOptTaskflowParams params;
     params.enable_post_contact_discrete_check = false;
     params.enable_post_contact_continuous_check = true;
-    params.enable_time_parameterization = true;
+    // params.enable_time_parameterization = true;
     planning_server.registerProcessPlanner(new_planner_name,
                                           std::make_unique<tesseract_planning::TrajOptTaskflow>(params));
 
@@ -275,8 +284,8 @@ hotspray_msgs::GenerateSprayTrajectory::Response &res)
     // trajopt_plan_profile->cartesian_coeff(0) = 2.0; 
     // trajopt_plan_profile->cartesian_coeff(1) = 2.0; 
     // trajopt_plan_profile->cartesian_coeff(2) = 2.0; 
-    trajopt_plan_profile->cartesian_coeff(3) = 0.2; 
-    trajopt_plan_profile->cartesian_coeff(4) = 0.2; 
+    trajopt_plan_profile->cartesian_coeff(3) = 2.0; 
+    trajopt_plan_profile->cartesian_coeff(4) = 2.0; 
     trajopt_plan_profile->cartesian_coeff(5) = 0.0;
 
     auto trajopt_composite_profile = std::make_shared<tesseract_planning::TrajOptDefaultCompositeProfile>();
@@ -339,3 +348,4 @@ hotspray_msgs::GenerateSprayTrajectory::Response &res)
  * @param traj The joint trajectory
  */
 void toMsg(std::vector<tesseract_msgs::JointState>& traj_msg, const tesseract_common::JointTrajectory& traj);
+

@@ -38,18 +38,18 @@ bool loadPoseArrayFromFile();
 
 bool convertFromNoetherToHotsprayFrame();
 
-visualization_msgs::MarkerArray convertToAxisMarkers(const std::vector<geometry_msgs::PoseArray>& pose_arrays,
-                                                const std::string& frame_id,
-                                                const std::string& ns,
-                                                const std::size_t& start_id = 0,
-                                                const double& axis_scale = 0.001,
-                                                const double& axis_length = 0.03,
-                                                const std::tuple<float, float, float, float, float, float>& offset = std::make_tuple(0.0, 0.0, 0.0, 0.0, 0.0, 0.0));
+// visualization_msgs::MarkerArray convertToAxisMarkers(const std::vector<geometry_msgs::PoseArray>& pose_arrays,
+//                                                 const std::string& frame_id,
+//                                                 const std::string& ns,
+//                                                 const std::size_t& start_id = 0,
+//                                                 const double& axis_scale = 0.001,
+//                                                 const double& axis_length = 0.03,
+//                                                 const std::tuple<float, float, float, float, float, float>& offset = std::make_tuple(0.0, 0.0, 0.0, 0.0, 0.0, 0.0));
 
-visualization_msgs::MarkerArray convertToAxisMarkers(const std::vector<Eigen::Isometry3d>& pose_array,
-                                                const std::string& frame_id,
-                                                const std::string& ns,
-                                                const std::size_t& start_id = 0,
-                                                const double& axis_scale = 0.001,
-                                                const double& axis_length = 0.03,
-                                                const std::tuple<float, float, float, float, float, float>& offset = std::make_tuple(0.0, 0.0, 0.0, 0.0, 0.0, 0.0));
+// visualization_msgs::MarkerArray convertToAxisMarkers(const std::vector<Eigen::Isometry3d>& pose_array,
+//                                                 const std::string& frame_id,
+//                                                 const std::string& ns,
+//                                                 const std::size_t& start_id = 0,
+//                                                 const double& axis_scale = 0.001,
+//                                                 const double& axis_length = 0.03,
+//                                                 const std::tuple<float, float, float, float, float, float>& offset = std::make_tuple(0.0, 0.0, 0.0, 0.0, 0.0, 0.0));

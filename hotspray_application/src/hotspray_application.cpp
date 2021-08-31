@@ -1,9 +1,10 @@
 
-# include <hotspray_application.hpp>
+#include <hotspray_application.hpp>
 #include "eigen_conversions/eigen_msg.h" //conversion posemsg -> eigen
 
 const std::string YAK_SCAN_FRAME = "tsdf_origin";
-const std::string MESH_NAME = "/results_mesh.ply";
+const std::string PLY_NAME = "/results_mesh.ply";
+
 const std::string EXECUTE_TRAJECTORY_ACTION = "execute_trajectory";
 
 
@@ -13,6 +14,7 @@ HotsprayApplication::HotsprayApplication(ros::NodeHandle nh) :
     mesh_client_(nh_.serviceClient<yak_ros_msgs::GenerateMesh>("/tsdf_node/generate_mesh")),
     toolpath_client_(nh_.serviceClient<hotspray_msgs::GenerateToolpath>("/plane_slicer_example/generate_toolpath")),
     trajectory_client_(nh_.serviceClient<hotspray_msgs::GenerateSprayTrajectory>("/hotspray_motion/generate_trajectory")),
+    tubular_toolpath_client_(nh_.serviceClient<tubular_toolpath_creator::GenerateTubularToolpath>("/tubular_toolpath_creator/create_tubular_toolpath")),
     scan_pose_publisher_(nh_.advertise<visualization_msgs::MarkerArray>("scan_poses", 1)),
     moveit_action_client_ptr_(std::make_shared<client_type>("execute_trajectory",true)),
     mesh_path_(ros::package::getPath("hotspray_application") + "/meshs")
@@ -69,7 +71,7 @@ bool HotsprayApplication::createScanTrajectory(trajectory_msgs::JointTrajectory&
 
 bool HotsprayApplication::generateMesh(){
     yak_ros_msgs::GenerateMesh mesh_srv;
-    mesh_srv.request.results_dir =  mesh_path_ ;//+ MESH_NAME;
+    mesh_srv.request.results_dir =  mesh_path_ ;//+ PLY_NAME;
     mesh_srv.request.results_frame = YAK_SCAN_FRAME;
 
     if(mesh_client_.call(mesh_srv))
@@ -86,7 +88,7 @@ bool HotsprayApplication::generateMesh(){
 
 bool HotsprayApplication::generateToolpath(std::vector<geometry_msgs::PoseArray>& pose_arrays){
     hotspray_msgs::GenerateToolpath toolpath_srv;
-    toolpath_srv.request.mesh_path = mesh_path_ + MESH_NAME;
+    toolpath_srv.request.mesh_path = mesh_path_ + PLY_NAME;
     //toolpath_srv.request.mesh_path = "/home/bieri/hotspray_ws/src/noether/noether_examples/data/raw_mesh.ply";
 
     if(toolpath_client_.call(toolpath_srv))
@@ -103,6 +105,30 @@ bool HotsprayApplication::generateToolpath(std::vector<geometry_msgs::PoseArray>
     }
 
     this->noetherMsgtoPoseArrayMsg(toolpath_srv.response.tool_paths, pose_arrays);
+
+    return 1;
+}
+
+bool HotsprayApplication::generateTubularToolpath(std::vector<geometry_msgs::PoseArray>& pose_arrays){
+    tubular_toolpath_creator::GenerateTubularToolpath tubular_toolpath_srv;
+    tubular_toolpath_srv.request.mesh_path = mesh_path_ + PLY_NAME;
+
+
+    if(tubular_toolpath_client_.call(tubular_toolpath_srv))
+    {
+        // std::vector<geometry_msgs::PoseArray> 
+        pose_arrays = tubular_toolpath_srv.response.toolpath_raster;
+        // noetherMsgtoPoseArrayMsg(raster_paths, pose_arrays);
+        ROS_INFO("toolpath gen success");
+        return 0;
+    }
+    else
+    {
+        ROS_ERROR("Failed to call service generate toolpath");
+        return -1;
+    }
+
+    // this->noetherMsgtoPoseArrayMsg(tubular_toolpath_srv.response.tool_paths, pose_arrays);
 
     return 1;
 }
@@ -177,7 +203,7 @@ bool HotsprayApplication::run()
     // generateMesh();
 
     std::vector<geometry_msgs::PoseArray> spray_pose_arrays;
-    generateToolpath(spray_pose_arrays);
+    generateTubularToolpath(spray_pose_arrays);
 
     // Eigen::Affine3d r = HotsprayUtils::create_rotation_matrix(0, 180, 0);
     // Eigen::Affine3d t(Eigen::Translation3d(Eigen::Vector3d(0.2, 0.2, 0.55)));
@@ -186,8 +212,6 @@ bool HotsprayApplication::run()
     // Eigen::Isometry3d pattern_origin = Eigen::Isometry3d::Identity();
     // pattern_origin.translation() = Eigen::Vector3d(0.2, 0.2, 0.55);QQ
 
-    // for(auto& pose_arrys : spray_pose_arrays)
-
     Eigen::Isometry3d eigen_pose;
     int i =0;
     for(auto& pose_arrys : spray_pose_arrays)
@@ -195,20 +219,20 @@ bool HotsprayApplication::run()
         for(auto& pose : pose_arrys.poses){
             tf::poseMsgToEigen(pose, eigen_pose);
             // std::cout << pose << std::endl;
-            if (i%2 == 1)
-                eigen_pose = eigen_pose * Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitZ());
+            // if (i%2 == 1)
+            //     eigen_pose = eigen_pose * Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitZ());
 
-            eigen_pose = eigen_pose * Eigen::AngleAxisd(M_PI/2, Eigen::Vector3d::UnitZ());
+            // eigen_pose = eigen_pose * Eigen::AngleAxisd(M_PI/2, Eigen::Vector3d::UnitZ());
         
-            eigen_pose = eigen_pose * Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitY());
+            // eigen_pose = eigen_pose * Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitY());
             //eigen_pose = eigen_pose * Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitZ()); // this flips the tool around so that Z is down
-            eigen_pose.pretranslate(Eigen::Vector3d(0.2, 0.2, 0.55));
+            // eigen_pose.pretranslate(Eigen::Vector3d(0.2, 0.2, 0.55));
             //eigen_pose.rotate(r);
             tf::poseEigenToMsg(eigen_pose, pose);
             // std::cout << pose << std::endl;
         }
         i++;
-    }
+    // }
 
     // HotsprayUtils::applyTranformationToPoseArray(spray_pose_arrays, 0.2, 0.2, 0.6, 0, 0, 0);
 

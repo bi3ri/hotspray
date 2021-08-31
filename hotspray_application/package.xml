@@ -35,6 +35,7 @@
 
   <depend>roslib</depend>
   <depend>hotspray_msgs</depend>
+  <depend>tubular_toolpath_creator</depend>
   <depend>hotspray_utils</depend>
   <depend>yaml-cpp</depend>
   <depend>message_generation</depend>

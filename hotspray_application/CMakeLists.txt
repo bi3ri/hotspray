@@ -29,6 +29,8 @@ tf2_geometry_msgs
 hotspray_msgs
 yak_ros_msgs
 hotspray_utils
+
+tubular_toolpath_creator
 )
 
 find_package( Eigen3 REQUIRED )

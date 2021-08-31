@@ -9,6 +9,8 @@
   <xacro:include filename="$(find hotspray_description)/urdf/hotspray_tool.xacro"/>
   <xacro:include filename="$(find hotspray_description)/urdf/hotspray_workcell.xacro"/>
   <xacro:include filename="$(find ur_description)/urdf/ur5.urdf.xacro" />
+  <!-- <xacro:include filename="$(find tesseract_ros_examples)/urdf/lbr_iiwa_14_r820_macro.xacro" /> -->
+
   
   <!-- robot -->
     <xacro:if value="${sim}">
@@ -24,7 +26,7 @@
         wrist_1_lower_limit="${-pi}" wrist_1_upper_limit="${pi}"
         wrist_2_lower_limit="${-pi}" wrist_2_upper_limit="${pi}"
         wrist_3_lower_limit="${-pi}" wrist_3_upper_limit="${pi}"
-        transmission_hw_interface="$(arg transmission_hw_interface)"
+        transmission_hw_interface="$(arg transmission_hw_interface)" 
       />
     </xacro:if>
     <xacro:unless value="${joint_limited}">
@@ -32,6 +34,9 @@
           transmission_hw_interface="$(arg transmission_hw_interface)"
         />
     </xacro:unless>
+
+      <!-- <xacro:kuka_lbr_iiwa_14_r820 prefix=""/> -->
+
 
   <!-- link world->robot -->
    <link name="world"/>
