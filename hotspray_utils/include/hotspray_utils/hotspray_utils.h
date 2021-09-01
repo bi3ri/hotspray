@@ -28,6 +28,9 @@ bool savePoseArrayToFile(const geometry_msgs::PoseArray& pose_array, const std::
 
 bool loadPoseArrayFromFile(geometry_msgs::PoseArray& pose_array, const std::string& name);
 
+void convertResponseArrayToPoseArray(const std_msgs::Float64MultiArray& response_array, std::vector<Eigen::Isometry3d>& pose_array);
+
+void convertResponseArrayToPoseArray(const std_msgs::Float64MultiArray& response_array, std::vector<geometry_msgs::PoseArray> &pose_array);
 
 
 Eigen::Affine3d create_rotation_matrix(double ax, double ay, double az);

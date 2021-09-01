@@ -58,7 +58,7 @@ bool generateMesh();
 
 bool generateToolpath(std::vector<geometry_msgs::PoseArray>& pose_arrays);
 
-bool generateTubularToolpath(std::vector<geometry_msgs::PoseArray>& pose_arrays);
+bool generateTubularToolpath(std_msgs::Float64MultiArray& pose_vector_array);
 
 bool generateTrajectory(std::vector<geometry_msgs::PoseArray>& pose_arrays, trajectory_msgs::JointTrajectory& trajectory);
 

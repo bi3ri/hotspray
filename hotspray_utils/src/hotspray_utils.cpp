@@ -136,9 +136,9 @@ visualization_msgs::MarkerArray HotsprayUtils::convertToAxisMarkers(const std::v
 
   // markers for each axis line
   int marker_id = start_id;
-  visualization_msgs::Marker x_axis_marker = create_line_marker(++marker_id, std::make_tuple(1.0, 0.0, 0.0, 1.0));
-  visualization_msgs::Marker y_axis_marker = create_line_marker(++marker_id, std::make_tuple(0.0, 1.0, 0.0, 1.0));
-  visualization_msgs::Marker z_axis_marker = create_line_marker(++marker_id, std::make_tuple(0.0, 0.0, 1.0, 1.0));
+  visualization_msgs::Marker x_axis_marker = create_line_marker(++marker_id, std::make_tuple(1.0, 0.0, 0.0, 1.0)); //red
+  visualization_msgs::Marker y_axis_marker = create_line_marker(++marker_id, std::make_tuple(0.0, 1.0, 0.0, 1.0)); //green
+  visualization_msgs::Marker z_axis_marker = create_line_marker(++marker_id, std::make_tuple(0.0, 0.0, 1.0, 1.0)); //blue
 
   auto add_axis_line = [](const Isometry3d& eigen_pose,
                           const Vector3d& dir,
@@ -246,6 +246,99 @@ visualization_msgs::MarkerArray HotsprayUtils::convertToAxisMarkers(const std::v
   markers.markers.push_back(y_axis_marker);
   markers.markers.push_back(z_axis_marker);
   return markers;
+}
+
+static Eigen::Matrix3d computeRotation(const Eigen::Vector3d& vx, const Eigen::Vector3d& vy, const Eigen::Vector3d& vz)
+{
+  Eigen::Matrix3d m;
+  m.setIdentity();
+  m.col(0) = vx.normalized();
+  m.col(1) = vy.normalized();
+  m.col(2) = vz.normalized();
+  return m;
+}
+
+void HotsprayUtils::convertResponseArrayToPoseArray(const std_msgs::Float64MultiArray& response_array, std::vector<Eigen::Isometry3d>& pose_array){
+
+    int number_of_poses = response_array.data.size() / 12;
+        
+    std::cout << "number of poses" << number_of_poses << std::endl;
+
+    geometry_msgs::PoseArray pose_array_;
+
+    int idx = 0;
+
+    for(int i = 0; i < number_of_poses; i++){
+        geometry_msgs::Pose pose;
+        Eigen::Isometry3d eigen_pose;
+
+        Eigen::Vector3d p, vx, vy, vz;
+
+        idx = i * 12;
+
+        p.data()[0] = response_array.data[idx+0];
+        p.data()[1] = response_array.data[idx+1];
+        p.data()[2] = response_array.data[idx+2];
+
+        vx.data()[0] = response_array.data[idx+3];
+        vx.data()[1] = response_array.data[idx+4];
+        vx.data()[2] = response_array.data[idx+5];
+
+        vy.data()[0] = response_array.data[idx+6];
+        vy.data()[1] = response_array.data[idx+7];
+        vy.data()[2] = response_array.data[idx+8];
+
+        vz.data()[0] = response_array.data[idx+9];
+        vz.data()[1] = response_array.data[idx+10];
+        vz.data()[2] = response_array.data[idx+11];
+
+        eigen_pose = Eigen::Translation3d(p) * Eigen::AngleAxisd(computeRotation(vx, vy, vz));
+
+        pose_array.push_back(eigen_pose);
+    }
+
+}
+
+void HotsprayUtils::convertResponseArrayToPoseArray(const std_msgs::Float64MultiArray& response_array, std::vector<geometry_msgs::PoseArray> &pose_array){
+
+    int number_of_poses = response_array.data.size() / 12;
+        
+    std::cout << "number of poses" << number_of_poses << std::endl;
+
+    geometry_msgs::PoseArray pose_array_;
+
+    int idx = 0;
+
+    for(int i = 0; i < number_of_poses; i++){
+        geometry_msgs::Pose pose;
+        Eigen::Isometry3d eigen_pose;
+
+        Eigen::Vector3d p, vx, vy, vz;
+
+        idx = i * 12;
+
+        p.data()[0] = response_array.data[idx+0];
+        p.data()[1] = response_array.data[idx+1];
+        p.data()[2] = response_array.data[idx+2];
+
+        vx.data()[0] = response_array.data[idx+3];
+        vx.data()[1] = response_array.data[idx+4];
+        vx.data()[2] = response_array.data[idx+5];
+
+        vy.data()[0] = response_array.data[idx+6];
+        vy.data()[1] = response_array.data[idx+7];
+        vy.data()[2] = response_array.data[idx+8];
+
+        vz.data()[0] = response_array.data[idx+9];
+        vz.data()[1] = response_array.data[idx+10];
+        vz.data()[2] = response_array.data[idx+11];
+
+        eigen_pose = Eigen::Translation3d(p) * Eigen::AngleAxisd(computeRotation(vx, vy, vz));
+
+        tf::poseEigenToMsg(eigen_pose, pose);
+        pose_array_.poses.push_back(pose);
+    }
+    pose_array.push_back(pose_array_);
 }
 
 
