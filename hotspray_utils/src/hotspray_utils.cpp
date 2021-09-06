@@ -20,7 +20,7 @@
 bool HotsprayUtils::saveTrajectoryToFile(const trajectory_msgs::JointTrajectory& trajectory, const std::string name){
     std::string path = ros::package::getPath("hotspray_application");
     rosbag::Bag bag;
-    bag.open(path + "/trajectories/" + name + ".bag", rosbag::bagmode::Write);
+    bag.open(path + "/trajectories/" + name + ".trajectory.bag", rosbag::bagmode::Write);
     bag.write(name, ros::Time::now(), trajectory);
     bag.close();
     return 0;
@@ -46,7 +46,7 @@ bool HotsprayUtils::loadTrajectoryFromFile(trajectory_msgs::JointTrajectory& tra
 bool HotsprayUtils::savePoseArrayToFile(const geometry_msgs::PoseArray& pose_array, const std::string& name){
     std::string path = ros::package::getPath("hotspray_application");
     rosbag::Bag bag;
-    bag.open(path + "/poses/" + name + ".posearray.bag", rosbag::bagmode::Write);
+    bag.open(path + "/poses/" + name + ".pose_array.bag", rosbag::bagmode::Write);
     bag.write(name, ros::Time::now(), pose_array);
     bag.close();
     return 0;
@@ -55,7 +55,7 @@ bool HotsprayUtils::savePoseArrayToFile(const geometry_msgs::PoseArray& pose_arr
 bool HotsprayUtils::loadPoseArrayFromFile(geometry_msgs::PoseArray& pose_array, const std::string& name){
     std::string path = ros::package::getPath("hotspray_application");
     rosbag::Bag bag;
-    bag.open(path + "/poses/" + name + ".posearray.bag", rosbag::bagmode::Read);
+    bag.open(path + "/poses/" + name + ".pose_array.bag", rosbag::bagmode::Read);
 
     boost::shared_ptr<geometry_msgs::PoseArray> tmp_pose_array;
 
@@ -258,8 +258,8 @@ static Eigen::Matrix3d computeRotation(const Eigen::Vector3d& vx, const Eigen::V
   return m;
 }
 
-void HotsprayUtils::convertResponseArrayToPoseArray(const std_msgs::Float64MultiArray& response_array, std::vector<Eigen::Isometry3d>& pose_array){
-
+void HotsprayUtils::convertResponseArrayToPoseArray(const std_msgs::Float64MultiArray& response_array, std::vector<Eigen::Isometry3d>& pose_array)
+{
     int number_of_poses = response_array.data.size() / 12;
         
     std::cout << "number of poses" << number_of_poses << std::endl;
@@ -296,7 +296,6 @@ void HotsprayUtils::convertResponseArrayToPoseArray(const std_msgs::Float64Multi
 
         pose_array.push_back(eigen_pose);
     }
-
 }
 
 void HotsprayUtils::convertResponseArrayToPoseArray(const std_msgs::Float64MultiArray& response_array, std::vector<geometry_msgs::PoseArray> &pose_array){

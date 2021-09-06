@@ -1,0 +1,14 @@
+<launch>
+  <arg name="scan_file_name" default="default_scan" />
+  <arg name="scan_file_name" default="default_scan" />
+
+  <node name="hotspray_application" pkg="hotspray_application" type="hotspray_application_node" output="screen">
+    <param name="scan_action" value="load_scan_poses"/>
+    <param name="scan_file_name" value="load_scan_poses"/>
+
+    <param name="yak_scan_frame" value="load_scan_poses"/>
+    <param name="ply_path_" value="load_scan_poses"/>
+
+
+  </node>
+</launch>

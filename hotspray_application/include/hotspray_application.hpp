@@ -39,20 +39,25 @@ private:
     ros::NodeHandle ph_;
     ros::ServiceClient mesh_client_;
     ros::ServiceClient toolpath_client_;
-    ros::ServiceClient trajectory_client_;
+    ros::ServiceClient scan_trajectory_client_;
     ros::ServiceClient tubular_toolpath_client_;
     moveit_action_client_ptr moveit_action_client_ptr_;
 
-    std::string mesh_path_;
+    std::string package_path_;
+
     ros::Publisher scan_pose_publisher_; 
 
+    std::string yak_scan_frame_;
+    std::string ply_name_;
 
+    std::string scan_action_;
+    std::string scan_file_name_;
 
 
 public:
 HotsprayApplication(ros::NodeHandle nh);
 
-bool createScanTrajectory(trajectory_msgs::JointTrajectory& trajectory);
+bool createScanPoses(geometry_msgs::PoseArray pose_array);
 
 bool generateMesh();
 
