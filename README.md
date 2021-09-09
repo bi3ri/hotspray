@@ -94,6 +94,9 @@ libbullet-dev libbullet-extras-dev ros-noetic-fcl ros-noetic-taskflow
 
 sudo apt install ros-noetic-opw-kinematics 
 
+sudo apt-get install cmake libeigen3-dev coinor-libipopt-dev
+
+
 # Tesseract_ros
 sudo apt-get install ros-noetic-octomap-ros
 
@@ -101,3 +104,10 @@ sudo apt-get install ros-noetic-octomap-ros
 
 # Tesseract Python (not used until now)
 sudo apt install swig
+
+
+
+
+
+stuff used:
+nohlman json

@@ -59,7 +59,7 @@ bool HotsprayUtils::loadPoseArrayFromFile(geometry_msgs::PoseArray& pose_array, 
 
     boost::shared_ptr<geometry_msgs::PoseArray> tmp_pose_array;
 
-    for (const rosbag::MessageInstance& m : rosbag::View(bag)) //TODO: keine schleife?
+    for (const rosbag::MessageInstance& m : rosbag::View(bag)) 
     {
         tmp_pose_array = m.instantiate<geometry_msgs::PoseArray>();
     }
@@ -301,19 +301,13 @@ void HotsprayUtils::convertResponseArrayToPoseArray(const std_msgs::Float64Multi
 void HotsprayUtils::convertResponseArrayToPoseArray(const std_msgs::Float64MultiArray& response_array, std::vector<geometry_msgs::PoseArray> &pose_array){
 
     int number_of_poses = response_array.data.size() / 12;
-        
-    std::cout << "number of poses" << number_of_poses << std::endl;
-
     geometry_msgs::PoseArray pose_array_;
 
     int idx = 0;
-
     for(int i = 0; i < number_of_poses; i++){
         geometry_msgs::Pose pose;
         Eigen::Isometry3d eigen_pose;
-
         Eigen::Vector3d p, vx, vy, vz;
-
         idx = i * 12;
 
         p.data()[0] = response_array.data[idx+0];
@@ -333,11 +327,59 @@ void HotsprayUtils::convertResponseArrayToPoseArray(const std_msgs::Float64Multi
         vz.data()[2] = response_array.data[idx+11];
 
         eigen_pose = Eigen::Translation3d(p) * Eigen::AngleAxisd(computeRotation(vx, vy, vz));
-
         tf::poseEigenToMsg(eigen_pose, pose);
         pose_array_.poses.push_back(pose);
     }
     pose_array.push_back(pose_array_);
+}
+
+void HotsprayUtils::convertPoseArrayMsgToJson(geometry_msgs::PoseArray& pose_array, nlohmann::json& json_pose_array){
+  int idx = 0;
+  for(geometry_msgs::Pose pose : pose_array.poses){
+    nlohmann::json json_pose = 
+      {
+        {"position",
+          {
+            {"x", pose.position.x},
+            {"y", pose.position.y},
+            {"z", pose.position.z}
+          }
+        },
+        {"orientation",
+          {
+            {"x", pose.orientation.x},
+            {"y", pose.orientation.y},
+            {"z", pose.orientation.z},
+            {"w", pose.orientation.w}
+          }
+        }
+      };
+  json_pose_array.push_back(json_pose);
+  } 
+}
+
+void HotsprayUtils::convertJsonToPoseArrayMsg(nlohmann::json& json_pose_array, geometry_msgs::PoseArray& pose_array){
+  for(int i = 0; i < json_pose_array.size(); i++){
+    geometry_msgs::Pose pose;
+    pose.position.x = json_pose_array[i]["position"]["x"];
+    pose.position.y = json_pose_array[i]["position"]["y"];
+    pose.position.z = json_pose_array[i]["position"]["z"];
+    pose.orientation.x = json_pose_array[i]["orientation"]["x"];
+    pose.orientation.y = json_pose_array[i]["orientation"]["y"];
+    pose.orientation.z = json_pose_array[i]["orientation"]["z"];
+    pose.orientation.w = json_pose_array[i]["orientation"]["w"];
+    pose_array.poses.push_back(pose);
+  }
+}
+
+void HotsprayUtils::loadJson(std::string path, nlohmann::json& json_pose_array){
+  std::ifstream ifs(path);
+  json_pose_array = nlohmann::json::parse(ifs);
+}
+
+void HotsprayUtils::saveJson(std::string path, nlohmann::json& json_pose_array){
+  std::ofstream of(path);
+  of << std::setw(4) << json_pose_array << std::endl;
 }
 
 

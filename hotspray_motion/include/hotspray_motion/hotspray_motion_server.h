@@ -60,6 +60,13 @@ class HotsprayMotionServer
         void createProgramm(tesseract_planning::CompositeInstruction& program, const std::vector<geometry_msgs::PoseArray, std::allocator<geometry_msgs::PoseArray>> & _pose_arrys);
 
 
+        /**
+         * @brief Generate a JointTrajectory Message that contains only trajectory joints
+         * @param traj_msg The output JointTrajectory Message
+         * @param joint_names The joint names corresponding to the trajectory
+         * @param traj The joint trajectory
+         */
+        void toMsg(trajectory_msgs::JointTrajectory& traj_msg, const tesseract_common::JointTrajectory& traj);
 
 
 };

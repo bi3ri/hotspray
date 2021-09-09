@@ -15,6 +15,8 @@
 
 #include <trajectory_msgs/JointTrajectory.h>
 
+#include <hotspray_utils/json.hpp>
+
 namespace HotsprayUtils{
 
 
@@ -55,7 +57,13 @@ visualization_msgs::MarkerArray convertToAxisMarkers(const std::vector<geometry_
                                                       const double& axis_length = 0.03,
                                                       const std::tuple<float, float, float, float, float, float>& offset = std::make_tuple(0.0, 0.0, 0.0, 0.0, 0.0, 0.0));
 
+void convertJsonToPoseArrayMsg(nlohmann::json& json_pose_array, geometry_msgs::PoseArray& pose_array);
 
+void convertPoseArrayMsgToJson(geometry_msgs::PoseArray& pose_array, nlohmann::json& json_pose_array);
+
+void loadJson(std::string path, nlohmann::json& json_pose_array);
+
+void saveJson(std::string path, nlohmann::json& json_pose_array);
 /*
 visualization_msgs::MarkerArray
 HotsparyMotion::convertToArrowMarkers(const noether_msgs::ToolPaths& toolpaths,

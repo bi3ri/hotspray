@@ -51,13 +51,13 @@ private:
     std::string ply_name_;
 
     std::string scan_action_;
-    std::string scan_file_name_;
+    std::string scan_poses_file_name_;
 
 
 public:
 HotsprayApplication(ros::NodeHandle nh);
 
-bool createScanPoses(geometry_msgs::PoseArray pose_array);
+void createScanPoses(geometry_msgs::PoseArray& pose_array);
 
 bool generateMesh();
 

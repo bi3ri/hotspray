@@ -1,14 +1,13 @@
 <launch>
-  <arg name="scan_file_name" default="default_scan" />
-  <arg name="scan_file_name" default="default_scan" />
+  <arg name="scan_poses_file_name" default="default_scan" />
+  <arg name="ply_name" default="/results_mesh.ply" />
 
   <node name="hotspray_application" pkg="hotspray_application" type="hotspray_application_node" output="screen">
-    <param name="scan_action" value="load_scan_poses"/>
-    <param name="scan_file_name" value="load_scan_poses"/>
+    <param name="scan_action" value="load_scan_trajectory"/>
+    <param name="scan_poses_file_name" value="$(arg scan_poses_file_name)"/>
 
-    <param name="yak_scan_frame" value="load_scan_poses"/>
-    <param name="ply_path_" value="load_scan_poses"/>
-
+    <param name="yak_scan_frame" value="tsdf_origin"/>
+    <param name="ply_name" value="$(arg ply_name)"/>
 
   </node>
 </launch>

@@ -1,468 +1,412 @@
-#include <moveit/move_group_interface/move_group_interface.h>
-#include <moveit/planning_scene_interface/planning_scene_interface.h>
 
-#include <moveit_msgs/DisplayRobotState.h>
-#include <moveit_msgs/DisplayTrajectory.h>
+//#include <hotspray_motion/hotspray_motion_config.hpp>
 
-#include <moveit_msgs/AttachedCollisionObject.h>
-#include <moveit_msgs/CollisionObject.h>
-
-#include <moveit_visual_tools/moveit_visual_tools.h>
-
-#include <moveit_msgs/MotionPlanRequest.h>
-
-int party(){
-moveit_msgs::MotionPlanRequest request;
-request.goal_constraints.
+#include <hotspray_motion/hotspray_motion_server.h>
 
 
-return 1;
-}
+//#include <hotspray_motion/include/hotspray_motion_server.h>
+//#include <hotspray_motion/hotspray_motion_server.h>
+
+#include <ros/ros.h>
 
 
 
+#include "hotspray_msgs/GenerateSprayTrajectory.h"
+#include <control_msgs/FollowJointTrajectoryAction.h>
 
 
+#include <visualization_msgs/MarkerArray.h>
+#include "eigen_conversions/eigen_msg.h" //conversion posemsg -> eigen
+#include <Eigen/Geometry>
 
 
-// The circle constant tau = 2*pi. One tau is one rotation in radians.
-const double tau = 2 * M_PI;
+#include <tesseract_common/macros.h>
+TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
+#include <ros/ros.h>
+// #include <descartes_samplers/evaluators/euclidean_distance_edge_evaluator.h>
+#include <descartes_light/edge_evaluators/euclidean_distance_edge_evaluator.h>
 
-int main(int argc, char** argv)
+
+TESSERACT_COMMON_IGNORE_WARNINGS_POP
+
+#include <tesseract_environment/core/utils.h>
+#include <tesseract_environment/core/commands.h>
+#include <tesseract_rosutils/plotting.h>
+#include <tesseract_rosutils/utils.h>
+#include <tesseract_command_language/command_language.h>
+#include <tesseract_command_language/profile_dictionary.h>
+#include <tesseract_command_language/utils/utils.h>
+#include <tesseract_process_managers/taskflow_generators/freespace_taskflow.h>
+#include <tesseract_planning_server/tesseract_planning_server.h>
+#include <tesseract_motion_planners/ompl/profile/ompl_profile.h>
+#include <tesseract_motion_planners/ompl/profile/ompl_default_plan_profile.h>
+
+
+#include <tesseract_motion_planners/core/utils.h>
+#include <tesseract_visualization/markers/toolpath_marker.h>
+#include <tesseract_scene_graph/resource_locator.h>
+
+#include <tesseract_process_managers/taskflow_generators/trajopt_taskflow.h>
+#include <tesseract_motion_planners/trajopt/profile/trajopt_default_plan_profile.h>
+#include <tesseract_motion_planners/trajopt/profile/trajopt_default_composite_profile.h>
+#include <tesseract_motion_planners/trajopt/profile/trajopt_default_solver_profile.h>
+#include <tesseract_motion_planners/core/utils.h>
+#include <tesseract_motion_planners/trajopt/problem_generators/default_problem_generator.h>
+#include <tesseract_motion_planners/trajopt/trajopt_motion_planner.h>
+
+#include <tesseract_motion_planners/core/types.h>
+#include <tesseract_motion_planners/interface_utils.h>
+#include <tesseract_motion_planners/trajopt/serialize.h>
+#include <tesseract_motion_planners/trajopt/deserialize.h>
+
+
+#include <tesseract_motion_planners/descartes/descartes_collision.h>
+#include <tesseract_motion_planners/descartes/descartes_motion_planner.h>
+#include <tesseract_motion_planners/descartes/descartes_utils.h>
+#include <tesseract_motion_planners/descartes/problem_generators/default_problem_generator.h>
+#include <tesseract_motion_planners/descartes/profile/descartes_default_plan_profile.h>
+
+#include <tesseract_motion_planners/ompl/problem_generators/default_problem_generator.h>
+#include <tesseract_motion_planners/ompl/profile/ompl_default_plan_profile.h>
+#include <tesseract_motion_planners/ompl/ompl_motion_planner.h>
+
+
+#include <tinyxml2.h>
+
+const std::string ROBOT_DESCRIPTION_PARAM = "robot_description";
+const std::string ROBOT_SEMANTIC_PARAM = "robot_description_semantic";
+const std::string EXAMPLE_MONITOR_NAMESPACE = "tesseract_ros_examples";
+
+HotsprayMotionServer::HotsprayMotionServer(ros::NodeHandle nh) : //, std::string config_path) :
+    nh_(nh),
+    ph_("~"),
+    plan_trajectory_service_(ph_.advertiseService("generate_trajectory", &HotsprayMotionServer::generateSprayTrajectory, this)),
+    vis_pub_(ph_.advertise<visualization_msgs::MarkerArray>( "toolpath_marker", 0 )),
+    env_(std::make_shared<tesseract_environment::Environment>()),
+    rviz_(true),
+    plotting_(true)
 {
-  ros::init(argc, argv, "move_group_interface_tutorial");
-  ros::NodeHandle node_handle;
-
-  // ROS spinning must be running for the MoveGroupInterface to get information
-  // about the robot's state. One way to do this is to start an AsyncSpinner
-  // beforehand.
-  ros::AsyncSpinner spinner(1);
-  spinner.start();
-
-  // BEGIN_TUTORIAL
-  //
-  // Setup
-  // ^^^^^
-  //
-  // MoveIt operates on sets of joints called "planning groups" and stores them in an object called
-  // the `JointModelGroup`. Throughout MoveIt the terms "planning group" and "joint model group"
-  // are used interchangably.
-  static const std::string PLANNING_GROUP = "panda_arm";
-
-  // The :planning_interface:`MoveGroupInterface` class can be easily
-  // setup using just the name of the planning group you would like to control and plan for.
-  moveit::planning_interface::MoveGroupInterface move_group_interface(PLANNING_GROUP);
-
-  // We will use the :planning_interface:`PlanningSceneInterface`
-  // class to add and remove collision objects in our "virtual world" scene
-  moveit::planning_interface::PlanningSceneInterface planning_scene_interface;
-
-  // Raw pointers are frequently used to refer to the planning group for improved performance.
-  const moveit::core::JointModelGroup* joint_model_group =
-      move_group_interface.getCurrentState()->getJointModelGroup(PLANNING_GROUP);
-
-  // Visualization
-  // ^^^^^^^^^^^^^
-  //
-  // The package MoveItVisualTools provides many capabilities for visualizing objects, robots,
-  // and trajectories in RViz as well as debugging tools such as step-by-step introspection of a script.
-  namespace rvt = rviz_visual_tools;
-  moveit_visual_tools::MoveItVisualTools visual_tools("panda_link0");
-  visual_tools.deleteAllMarkers();
-
-  // Remote control is an introspection tool that allows users to step through a high level script
-  // via buttons and keyboard shortcuts in RViz
-  visual_tools.loadRemoteControl();
-
-  // RViz provides many types of markers, in this demo we will use text, cylinders, and spheres
-  Eigen::Isometry3d text_pose = Eigen::Isometry3d::Identity();
-  text_pose.translation().z() = 1.0;
-  visual_tools.publishText(text_pose, "MoveGroupInterface Demo", rvt::WHITE, rvt::XLARGE);
-
-  // Batch publishing is used to reduce the number of messages being sent to RViz for large visualizations
-  visual_tools.trigger();
-
-  // Getting Basic Information
-  // ^^^^^^^^^^^^^^^^^^^^^^^^^
-  //
-  // We can print the name of the reference frame for this robot.
-  ROS_INFO_NAMED("tutorial", "Planning frame: %s", move_group_interface.getPlanningFrame().c_str());
-
-  // We can also print the name of the end-effector link for this group.
-  ROS_INFO_NAMED("tutorial", "End effector link: %s", move_group_interface.getEndEffectorLink().c_str());
-
-  // We can get a list of all the groups in the robot:
-  ROS_INFO_NAMED("tutorial", "Available Planning Groups:");
-  std::copy(move_group_interface.getJointModelGroupNames().begin(),
-            move_group_interface.getJointModelGroupNames().end(), std::ostream_iterator<std::string>(std::cout, ", "));
-
-  // Start the demo
-  // ^^^^^^^^^^^^^^^^^^^^^^^^^
-  visual_tools.prompt("Press 'next' in the RvizVisualToolsGui window to start the demo");
-
-  // .. _move_group_interface-planning-to-pose-goal:
-  //
-  // Planning to a Pose goal
-  // ^^^^^^^^^^^^^^^^^^^^^^^
-  // We can plan a motion for this group to a desired pose for the
-  // end-effector.
-  geometry_msgs::Pose target_pose1;
-  target_pose1.orientation.w = 1.0;
-  target_pose1.position.x = 0.28;
-  target_pose1.position.y = -0.2;
-  target_pose1.position.z = 0.5;
-  move_group_interface.setPoseTarget(target_pose1);
-
-  // Now, we call the planner to compute the plan and visualize it.
-  // Note that we are just planning, not asking move_group_interface
-  // to actually move the robot.
-  moveit::planning_interface::MoveGroupInterface::Plan my_plan;
-
-  bool success = (move_group_interface.plan(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
-
-  ROS_INFO_NAMED("tutorial", "Visualizing plan 1 (pose goal) %s", success ? "" : "FAILED");
-
-  // Visualizing plans
-  // ^^^^^^^^^^^^^^^^^
-  // We can also visualize the plan as a line with markers in RViz.
-  ROS_INFO_NAMED("tutorial", "Visualizing plan 1 as trajectory line");
-  visual_tools.publishAxisLabeled(target_pose1, "pose1");
-  visual_tools.publishText(text_pose, "Pose Goal", rvt::WHITE, rvt::XLARGE);
-  visual_tools.publishTrajectoryLine(my_plan.trajectory_, joint_model_group);
-  visual_tools.trigger();
-  visual_tools.prompt("Press 'next' in the RvizVisualToolsGui window to continue the demo");
-
-  // Finally, to execute the trajectory stored in my_plan, you could use the following method call:
-  // Note that this can lead to problems if the robot moved in the meanwhile.
-  // move_group_interface.execute(my_plan);
-
-  // Moving to a pose goal
-  // ^^^^^^^^^^^^^^^^^^^^^
-  //
-  // If you do not want to inspect the planned trajectory,
-  // the following is a more robust combination of the two-step plan+execute pattern shown above
-  // and should be preferred. Note that the pose goal we had set earlier is still active,
-  // so the robot will try to move to that goal.
-
-  // move_group_interface.move();
-
-  // Planning to a joint-space goal
-  // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  //
-  // Let's set a joint space goal and move towards it.  This will replace the
-  // pose target we set above.
-  //
-  // To start, we'll create an pointer that references the current robot's state.
-  // RobotState is the object that contains all the current position/velocity/acceleration data.
-  moveit::core::RobotStatePtr current_state = move_group_interface.getCurrentState();
-  //
-  // Next get the current set of joint values for the group.
-  std::vector<double> joint_group_positions;
-  current_state->copyJointGroupPositions(joint_model_group, joint_group_positions);
-
-  // Now, let's modify one of the joints, plan to the new joint space goal and visualize the plan.
-  joint_group_positions[0] = -tau / 6;  // -1/6 turn in radians
-  move_group_interface.setJointValueTarget(joint_group_positions);
-
-  // We lower the allowed maximum velocity and acceleration to 5% of their maximum.
-  // The default values are 10% (0.1).
-  // Set your preferred defaults in the joint_limits.yaml file of your robot's moveit_config
-  // or set explicit factors in your code if you need your robot to move faster.
-  move_group_interface.setMaxVelocityScalingFactor(0.05);
-  move_group_interface.setMaxAccelerationScalingFactor(0.05);
-
-  success = (move_group_interface.plan(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
-  ROS_INFO_NAMED("tutorial", "Visualizing plan 2 (joint space goal) %s", success ? "" : "FAILED");
-
-  // Visualize the plan in RViz
-  visual_tools.deleteAllMarkers();
-  visual_tools.publishText(text_pose, "Joint Space Goal", rvt::WHITE, rvt::XLARGE);
-  visual_tools.publishTrajectoryLine(my_plan.trajectory_, joint_model_group);
-  visual_tools.trigger();
-  visual_tools.prompt("Press 'next' in the RvizVisualToolsGui window to continue the demo");
-
-  // Planning with Path Constraints
-  // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  //
-  // Path constraints can easily be specified for a link on the robot.
-  // Let's specify a path constraint and a pose goal for our group.
-  // First define the path constraint.
-  moveit_msgs::OrientationConstraint ocm;
-  ocm.link_name = "panda_link7";
-  ocm.header.frame_id = "panda_link0";
-  ocm.orientation.w = 1.0;
-  ocm.absolute_x_axis_tolerance = 0.1;
-  ocm.absolute_y_axis_tolerance = 0.1;
-  ocm.absolute_z_axis_tolerance = 0.1;
-  ocm.weight = 1.0;
-
-  // Now, set it as the path constraint for the group.
-  moveit_msgs::Constraints test_constraints;
-  test_constraints.orientation_constraints.push_back(ocm);
-  move_group_interface.setPathConstraints(test_constraints);
-
-  // Enforce Planning in Joint Space
-  // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  //
-  // Depending on the planning problem MoveIt chooses between
-  // ``joint space`` and ``cartesian space`` for problem representation.
-  // Setting the group parameter ``enforce_joint_model_state_space:true`` in
-  // the ompl_planning.yaml file enforces the use of ``joint space`` for all plans.
-  //
-  // By default planning requests with orientation path constraints
-  // are sampled in ``cartesian space`` so that invoking IK serves as a
-  // generative sampler.
-  //
-  // By enforcing ``joint space`` the planning process will use rejection
-  // sampling to find valid requests. Please note that this might
-  // increase planning time considerably.
-  //
-  // We will reuse the old goal that we had and plan to it.
-  // Note that this will only work if the current state already
-  // satisfies the path constraints. So we need to set the start
-  // state to a new pose.
-  moveit::core::RobotState start_state(*move_group_interface.getCurrentState());
-  geometry_msgs::Pose start_pose2;
-  start_pose2.orientation.w = 1.0;
-  start_pose2.position.x = 0.55;
-  start_pose2.position.y = -0.05;
-  start_pose2.position.z = 0.8;
-  start_state.setFromIK(joint_model_group, start_pose2);
-  move_group_interface.setStartState(start_state);
-
-  // Now we will plan to the earlier pose target from the new
-  // start state that we have just created.
-  move_group_interface.setPoseTarget(target_pose1);
-
-  // Planning with constraints can be slow because every sample must call an inverse kinematics solver.
-  // Lets increase the planning time from the default 5 seconds to be sure the planner has enough time to succeed.
-  move_group_interface.setPlanningTime(10.0);
-
-  success = (move_group_interface.plan(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
-  ROS_INFO_NAMED("tutorial", "Visualizing plan 3 (constraints) %s", success ? "" : "FAILED");
-
-  // Visualize the plan in RViz
-  visual_tools.deleteAllMarkers();
-  visual_tools.publishAxisLabeled(start_pose2, "start");
-  visual_tools.publishAxisLabeled(target_pose1, "goal");
-  visual_tools.publishText(text_pose, "Constrained Goal", rvt::WHITE, rvt::XLARGE);
-  visual_tools.publishTrajectoryLine(my_plan.trajectory_, joint_model_group);
-  visual_tools.trigger();
-  visual_tools.prompt("next step");
-
-  // When done with the path constraint be sure to clear it.
-  move_group_interface.clearPathConstraints();
-
-  // Cartesian Paths
-  // ^^^^^^^^^^^^^^^
-  // You can plan a Cartesian path directly by specifying a list of waypoints
-  // for the end-effector to go through. Note that we are starting
-  // from the new start state above.  The initial pose (start state) does not
-  // need to be added to the waypoint list but adding it can help with visualizations
-  std::vector<geometry_msgs::Pose> waypoints;
-  waypoints.push_back(start_pose2);
-
-  geometry_msgs::Pose target_pose3 = start_pose2;
-
-  target_pose3.position.z -= 0.2;
-  waypoints.push_back(target_pose3);  // down
-
-  target_pose3.position.y -= 0.2;
-  waypoints.push_back(target_pose3);  // right
-
-  target_pose3.position.z += 0.2;
-  target_pose3.position.y += 0.2;
-  target_pose3.position.x -= 0.2;
-  waypoints.push_back(target_pose3);  // up and left
-
-  // We want the Cartesian path to be interpolated at a resolution of 1 cm
-  // which is why we will specify 0.01 as the max step in Cartesian
-  // translation.  We will specify the jump threshold as 0.0, effectively disabling it.
-  // Warning - disabling the jump threshold while operating real hardware can cause
-  // large unpredictable motions of redundant joints and could be a safety issue
-  moveit_msgs::RobotTrajectory trajectory;
-  const double jump_threshold = 0.0;
-  const double eef_step = 0.01;
-  double fraction = move_group_interface.computeCartesianPath(waypoints, eef_step, jump_threshold, trajectory);
-  ROS_INFO_NAMED("tutorial", "Visualizing plan 4 (Cartesian path) (%.2f%% acheived)", fraction * 100.0);
-
-  // Visualize the plan in RViz
-  visual_tools.deleteAllMarkers();
-  visual_tools.publishText(text_pose, "Cartesian Path", rvt::WHITE, rvt::XLARGE);
-  visual_tools.publishPath(waypoints, rvt::LIME_GREEN, rvt::SMALL);
-  for (std::size_t i = 0; i < waypoints.size(); ++i)
-    visual_tools.publishAxisLabeled(waypoints[i], "pt" + std::to_string(i), rvt::SMALL);
-  visual_tools.trigger();
-  visual_tools.prompt("Press 'next' in the RvizVisualToolsGui window to continue the demo");
-
-  // Cartesian motions should often be slow, e.g. when approaching objects. The speed of cartesian
-  // plans cannot currently be set through the maxVelocityScalingFactor, but requires you to time
-  // the trajectory manually, as described `here <https://groups.google.com/forum/#!topic/moveit-users/MOoFxy2exT4>`_.
-  // Pull requests are welcome.
-  //
-  // You can execute a trajectory like this.
-  move_group_interface.execute(trajectory);
-
-  // Adding objects to the environment
-  // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  //
-  // First let's plan to another simple goal with no objects in the way.
-  move_group_interface.setStartState(*move_group_interface.getCurrentState());
-  geometry_msgs::Pose another_pose;
-  another_pose.orientation.x = 1.0;
-  another_pose.position.x = 0.7;
-  another_pose.position.y = 0.0;
-  another_pose.position.z = 0.59;
-  move_group_interface.setPoseTarget(another_pose);
-
-  success = (move_group_interface.plan(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
-  ROS_INFO_NAMED("tutorial", "Visualizing plan 5 (with no obstacles) %s", success ? "" : "FAILED");
-
-  visual_tools.deleteAllMarkers();
-  visual_tools.publishText(text_pose, "Clear Goal", rvt::WHITE, rvt::XLARGE);
-  visual_tools.publishTrajectoryLine(my_plan.trajectory_, joint_model_group);
-  visual_tools.trigger();
-  visual_tools.prompt("next step");
-
-  // The result may look like this:
-  //
-  // .. image:: ./move_group_interface_tutorial_clear_path.gif
-  //    :alt: animation showing the arm moving relatively straight toward the goal
-  //
-  // Now let's define a collision object ROS message for the robot to avoid.
-  moveit_msgs::CollisionObject collision_object;
-  collision_object.header.frame_id = move_group_interface.getPlanningFrame();
-
-  // The id of the object is used to identify it.
-  collision_object.id = "box1";
-
-  // Define a box to add to the world.
-  shape_msgs::SolidPrimitive primitive;
-  primitive.type = primitive.BOX;
-  primitive.dimensions.resize(3);
-  primitive.dimensions[primitive.BOX_X] = 0.1;
-  primitive.dimensions[primitive.BOX_Y] = 1.5;
-  primitive.dimensions[primitive.BOX_Z] = 0.5;
-
-  // Define a pose for the box (specified relative to frame_id)
-  geometry_msgs::Pose box_pose;
-  box_pose.orientation.w = 1.0;
-  box_pose.position.x = 0.5;
-  box_pose.position.y = 0.0;
-  box_pose.position.z = 0.25;
-
-  collision_object.primitives.push_back(primitive);
-  collision_object.primitive_poses.push_back(box_pose);
-  collision_object.operation = collision_object.ADD;
-
-  std::vector<moveit_msgs::CollisionObject> collision_objects;
-  collision_objects.push_back(collision_object);
-
-  // Now, let's add the collision object into the world
-  // (using a vector that could contain additional objects)
-  ROS_INFO_NAMED("tutorial", "Add an object into the world");
-  planning_scene_interface.addCollisionObjects(collision_objects);
-
-  // Show text in RViz of status and wait for MoveGroup to receive and process the collision object message
-  visual_tools.publishText(text_pose, "Add object", rvt::WHITE, rvt::XLARGE);
-  visual_tools.trigger();
-  visual_tools.prompt("Press 'next' in the RvizVisualToolsGui window to once the collision object appears in RViz");
-
-  // Now when we plan a trajectory it will avoid the obstacle
-  success = (move_group_interface.plan(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
-  ROS_INFO_NAMED("tutorial", "Visualizing plan 6 (pose goal move around cuboid) %s", success ? "" : "FAILED");
-  visual_tools.publishText(text_pose, "Obstacle Goal", rvt::WHITE, rvt::XLARGE);
-  visual_tools.publishTrajectoryLine(my_plan.trajectory_, joint_model_group);
-  visual_tools.trigger();
-  visual_tools.prompt("Press 'next' in the RvizVisualToolsGui window once the plan is complete");
-
-  // The result may look like this:
-  //
-  // .. image:: ./move_group_interface_tutorial_avoid_path.gif
-  //    :alt: animation showing the arm moving avoiding the new obstacle
-  //
-  // Attaching objects to the robot
-  // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  //
-  // You can attach objects to the robot, so that it moves with the robot geometry.
-  // This simulates picking up the object for the purpose of manipulating it.
-  // The motion planning should avoid collisions between the two objects as well.
-  moveit_msgs::CollisionObject object_to_attach;
-  object_to_attach.id = "cylinder1";
-
-  shape_msgs::SolidPrimitive cylinder_primitive;
-  cylinder_primitive.type = primitive.CYLINDER;
-  cylinder_primitive.dimensions.resize(2);
-  cylinder_primitive.dimensions[primitive.CYLINDER_HEIGHT] = 0.20;
-  cylinder_primitive.dimensions[primitive.CYLINDER_RADIUS] = 0.04;
-
-  // We define the frame/pose for this cylinder so that it appears in the gripper
-  object_to_attach.header.frame_id = move_group_interface.getEndEffectorLink();
-  geometry_msgs::Pose grab_pose;
-  grab_pose.orientation.w = 1.0;
-  grab_pose.position.z = 0.2;
-
-  // First, we add the object to the world (without using a vector)
-  object_to_attach.primitives.push_back(cylinder_primitive);
-  object_to_attach.primitive_poses.push_back(grab_pose);
-  object_to_attach.operation = object_to_attach.ADD;
-  planning_scene_interface.applyCollisionObject(object_to_attach);
-
-  // Then, we "attach" the object to the robot. It uses the frame_id to determine which robot link it is attached to.
-  // You could also use applyAttachedCollisionObject to attach an object to the robot directly.
-  ROS_INFO_NAMED("tutorial", "Attach the object to the robot");
-  move_group_interface.attachObject(object_to_attach.id, "panda_hand");
-
-  visual_tools.publishText(text_pose, "Object attached to robot", rvt::WHITE, rvt::XLARGE);
-  visual_tools.trigger();
-
-  /* Wait for MoveGroup to receive and process the attached collision object message */
-  visual_tools.prompt("Press 'next' in the RvizVisualToolsGui window once the new object is attached to the robot");
-
-  // Replan, but now with the object in hand.
-  move_group_interface.setStartStateToCurrentState();
-  success = (move_group_interface.plan(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
-  ROS_INFO_NAMED("tutorial", "Visualizing plan 7 (move around cuboid with cylinder) %s", success ? "" : "FAILED");
-  visual_tools.publishTrajectoryLine(my_plan.trajectory_, joint_model_group);
-  visual_tools.trigger();
-  visual_tools.prompt("Press 'next' in the RvizVisualToolsGui window once the plan is complete");
-
-  // The result may look something like this:
-  //
-  // .. image:: ./move_group_interface_tutorial_attached_object.gif
-  //    :alt: animation showing the arm moving differently once the object is attached
-  //
-  // Detaching and Removing Objects
-  // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  //
-  // Now, let's detach the cylinder from the robot's gripper.
-  ROS_INFO_NAMED("tutorial", "Detach the object from the robot");
-  move_group_interface.detachObject(object_to_attach.id);
-
-  // Show text in RViz of status
-  visual_tools.deleteAllMarkers();
-  visual_tools.publishText(text_pose, "Object detached from robot", rvt::WHITE, rvt::XLARGE);
-  visual_tools.trigger();
-
-  /* Wait for MoveGroup to receive and process the attached collision object message */
-  visual_tools.prompt("Press 'next' in the RvizVisualToolsGui window once the new object is detached from the robot");
-
-  // Now, let's remove the objects from the world.
-  ROS_INFO_NAMED("tutorial", "Remove the objects from the world");
-  std::vector<std::string> object_ids;
-  object_ids.push_back(collision_object.id);
-  object_ids.push_back(object_to_attach.id);
-  planning_scene_interface.removeCollisionObjects(object_ids);
-
-  // Show text in RViz of status
-  visual_tools.publishText(text_pose, "Objects removed", rvt::WHITE, rvt::XLARGE);
-  visual_tools.trigger();
-
-  /* Wait for MoveGroup to receive and process the attached collision object message */
-  visual_tools.prompt("Press 'next' in the RvizVisualToolsGui window to once the collision object disapears");
-
-  // END_TUTORIAL
-
-  ros::shutdown();
-  return 0;
+    nh_.getParam("arm_controller/joints", joint_names_);
+
+      // joint_names_.push_back("joint_a1");
+      // joint_names_.push_back("joint_a2");
+      // joint_names_.push_back("joint_a3");
+      // joint_names_.push_back("joint_a4");
+      // joint_names_.push_back("joint_a5");
+      // joint_names_.push_back("joint_a6");
+      // joint_names_.push_back("joint_a7");
+
+    home_joint_pos_ = Eigen::VectorXd::Constant(6, 1, 0);
+    home_joint_pos_(0) = 2.25;
+    home_joint_pos_(1) = -1.50;
+    home_joint_pos_(2) = 1.50;
+    home_joint_pos_(3) = 0.0;
+    home_joint_pos_(4) = 1.50;
+    home_joint_pos_(5) = -0.85;
+
+    // home_joint_pos_ = Eigen::VectorXd::Constant(7, 1, 0);
+    // home_joint_pos_(0) = 1.8850;
+    // home_joint_pos_(1) = 0.6364;
+    // home_joint_pos_(2) = -0.0492;
+    // home_joint_pos_(3) = -0.9372;
+    // home_joint_pos_(4) = 0.4753;
+    // home_joint_pos_(5) = 0.0347;
+    // home_joint_pos_(6) = 0.1856;
 }
+
+
+void HotsprayMotionServer::createProgramm(tesseract_planning::CompositeInstruction& program, 
+                                          const std::vector<geometry_msgs::PoseArray, 
+                                          std::allocator<geometry_msgs::PoseArray>>& pose_arrys)
+{
+        //  Eigen::VectorXd joint_pos(6);
+
+
+    // Start and End Joint Position for the program
+
+    // geometry_msgs::Pose pose;
+    // pose.orientation.x = 0.251757;
+    // // pose.orientation.x = 0.203607;
+
+    // pose.orientation.y = 0.459116;
+    // pose.orientation.z = 0.719463;
+    // pose.orientation.y = 0.509178;
+    // pose.orientation.z = 0.535936;
+    // pose.orientation.w = 0.492669;
+    // Eigen::Isometry3d eigen_pose;
+    // tf::poseMsgToEigen(pose, eigen_pose);
+
+
+    // tesseract_planning::Waypoint home_wp = tesseract_planning::CartesianWaypoint(eigen_pose);
+
+    tesseract_planning::Waypoint home_wp = tesseract_planning::JointWaypoint(joint_names_, home_joint_pos_);
+
+    //Waypoint wp1 = StateWaypoint(joint_names, joint_end_pos);
+
+    tesseract_planning::PlanInstruction start_instruction(home_wp, tesseract_planning::PlanInstructionType::START, "FREESPACE");
+    
+    program.setStartInstruction(start_instruction);
+
+    // Plan freespace from start
+
+    std::vector<Eigen::Isometry3d> eigen_pose_array;
+
+    Eigen::VectorXd lower_bound(6);
+    lower_bound[0] = 0;
+    lower_bound[1] = 0;
+    lower_bound[2] = 0;
+    lower_bound[3] = 0;
+    lower_bound[4] = 0;
+    // lower_bound[5] = -1;
+    lower_bound[5] = -180;
+
+
+    Eigen::VectorXd upper_bound(6);
+    upper_bound[0] = 0;
+    upper_bound[1] = 0;
+    upper_bound[2] = 0;
+    upper_bound[3] = 0;
+    upper_bound[4] = 0;
+    // upper_bound[5] = 3.14; (Eigen::AngleAxisd.axis() * Eigen::AngleAxisd.angle())*
+    upper_bound[5] = 180;
+    std::cout << "wo bin ich????\n\n\n" << std::endl;
+
+  for(const auto& pose_arry : pose_arrys)
+    {
+      for(const auto& pose : pose_arry.poses){
+        std::cout << "adding pose to programm \n" << pose << std::endl;
+        Eigen::Isometry3d eigen_pose;
+        tf::poseMsgToEigen(pose, eigen_pose);
+        eigen_pose_array.push_back(eigen_pose);
+        
+        tesseract_planning::CartesianWaypoint cw;
+        cw.waypoint = eigen_pose;
+        // cw.upper_tolerance = upper_bound;
+        // cw.lower_tolerance = lower_bound;
+
+        tesseract_planning::Waypoint wp = cw;
+
+        tesseract_planning::PlanInstruction plan(wp, tesseract_planning::PlanInstructionType::FREESPACE, "CARTESIAN");
+
+        program.push_back(plan);
+      }
+    }
+
+    tesseract_planning::Waypoint home_wp2 = tesseract_planning::JointWaypoint(joint_names_, home_joint_pos_);
+
+    tesseract_planning::PlanInstruction plan_end(home_wp, tesseract_planning::PlanInstructionType::FREESPACE, "FREESPACE");
+    program.push_back(plan_end);
+}
+
+void HotsprayMotionServer::toMsg(trajectory_msgs::JointTrajectory& traj_msg, const tesseract_common::JointTrajectory& traj)
+{
+  for (const auto& js : traj)
+  {
+    assert(js.joint_names.size() == static_cast<unsigned>(js.position.size()));
+
+    trajectory_msgs::JointTrajectoryPoint js_msg;
+    js_msg.positions.resize(static_cast<size_t>(js.position.size()));
+    js_msg.velocities.resize(static_cast<size_t>(js.velocity.size()));
+    js_msg.accelerations.resize(static_cast<size_t>(js.acceleration.size()));
+
+    for (int i = 0; i < js.position.size(); ++i)
+      js_msg.positions[static_cast<size_t>(i)] = js.position(i);
+
+    for (int i = 0; i < js.velocity.size(); ++i)
+      js_msg.velocities[static_cast<size_t>(i)] = js.velocity(i);
+
+    for (int i = 0; i < js.acceleration.size(); ++i)
+      js_msg.accelerations[static_cast<size_t>(i)] = js.acceleration(i);
+
+    js_msg.time_from_start = ros::Duration(js.time);
+    traj_msg.points.push_back(js_msg);
+  }
+  traj_msg.joint_names = traj[0].joint_names;
+  traj_msg.header.frame_id = "0";
+  traj_msg.header.stamp = ros::Time(0); //ros::Time::now();
+
+}
+
+
+//tesseract_ros_examples puzzle piece example
+bool HotsprayMotionServer::generateSprayTrajectory(hotspray_msgs::GenerateSprayTrajectory::Request &req,
+hotspray_msgs::GenerateSprayTrajectory::Response &res)
+{
+  using tesseract_planning::CartesianWaypoint;
+  using tesseract_planning::CompositeInstruction;
+  using tesseract_planning::CompositeInstructionOrder;
+  using tesseract_planning::Instruction;
+  using tesseract_planning::ManipulatorInfo;
+  using tesseract_planning::PlanInstruction;
+  using tesseract_planning::PlanInstructionType;
+  using tesseract_planning::ProcessPlanningFuture;
+  using tesseract_planning::ProcessPlanningRequest;
+  using tesseract_planning::ProcessPlanningServer;
+  using tesseract_planning::StateWaypoint;
+  using tesseract_planning::ToolCenterPoint;
+  using tesseract_planning::Waypoint;
+  using tesseract_planning_server::ROSProcessEnvironmentCache;
+
+  console_bridge::setLogLevel(console_bridge::LogLevel::CONSOLE_BRIDGE_LOG_DEBUG);
+
+  // Initial setup
+  std::string urdf_xml_string, srdf_xml_string;
+  nh_.getParam(ROBOT_DESCRIPTION_PARAM, urdf_xml_string);
+  nh_.getParam(ROBOT_SEMANTIC_PARAM, srdf_xml_string);
+
+  tesseract_scene_graph::ResourceLocator::Ptr locator = std::make_shared<tesseract_rosutils::ROSResourceLocator>();
+  if (!env_->init<tesseract_environment::OFKTStateSolver>(urdf_xml_string, srdf_xml_string, locator))
+    return false;
+
+  // Create monitor
+  monitor_ = std::make_shared<tesseract_monitoring::EnvironmentMonitor>(env_, EXAMPLE_MONITOR_NAMESPACE);
+  if (rviz_)
+    monitor_->startPublishingEnvironment(); //tesseract_monitoring::EnvironmentMonitor::UPDATE_ENVIRONMENT);
+
+  // Create plotting tool
+  tesseract_rosutils::ROSPlottingPtr plotter = std::make_shared<tesseract_rosutils::ROSPlotting>(monitor_->getSceneGraph()->getRoot());
+  if (rviz_)
+    plotter->waitForConnection();
+
+  env_->setState(joint_names_, home_joint_pos_);
+
+  // Create manipulator information for program
+  ManipulatorInfo mi;
+  mi.manipulator = "manipulator_tcp";
+  mi.tcp = ToolCenterPoint("tcp_frame", false);
+  mi.working_frame = "world";
+  // mi.tcp = ToolCenterPoint("grinder_frame", true);  // true - indicates this is an external TCP
+
+  // Create Program
+  CompositeInstruction program("DEFAULT", CompositeInstructionOrder::ORDERED, mi);
+  createProgramm(program, req.poses);
+
+    // Create Process Planning Server
+    ProcessPlanningServer planning_server(std::make_shared<ROSProcessEnvironmentCache>(monitor_), 5);
+    planning_server.loadDefaultProcessPlanners();
+
+    // Create a trajopt taskflow without post collision checking
+    /// @todo This matches the original example, but should update to include post collision check 
+    const std::string new_planner_name = "TRAJOPT_NO_POST_CHECK";
+    tesseract_planning::TrajOptTaskflowParams params;
+    params.enable_post_contact_discrete_check = false;
+    params.enable_post_contact_continuous_check = true;
+    // params.enable_time_parameterization = true;
+    planning_server.registerProcessPlanner(new_planner_name,
+                                          std::make_unique<tesseract_planning::TrajOptTaskflow>(params));
+
+
+  // Create TrajOpt Profile
+  auto trajopt_plan_profile = std::make_shared<tesseract_planning::TrajOptDefaultPlanProfile>();
+  trajopt_plan_profile->cartesian_coeff = Eigen::VectorXd::Constant(6, 1, 10);
+  // trajopt_plan_profile->cartesian_coeff(5) = 9;
+
+
+  auto trajopt_composite_profile = std::make_shared<tesseract_planning::TrajOptDefaultCompositeProfile>();
+  trajopt_composite_profile->collision_constraint_config.enabled = false;
+  trajopt_composite_profile->collision_cost_config.enabled = true;
+  trajopt_composite_profile->collision_cost_config.safety_margin = 0.025;
+  trajopt_composite_profile->collision_cost_config.type = trajopt::CollisionEvaluatorType::SINGLE_TIMESTEP;
+  trajopt_composite_profile->collision_cost_config.coeff = 20;
+  
+  auto test = tesseract_planning::toXMLFile(*trajopt_composite_profile, "/home/bi3ri/hotspray_ws/vontesseract.xml");
+
+
+  auto trajopt_solver_profile = std::make_shared<tesseract_planning::TrajOptDefaultSolverProfile>();
+  trajopt_solver_profile->convex_solver = sco::ModelType::OSQP;
+  trajopt_solver_profile->opt_info.max_iter = 200;
+  trajopt_solver_profile->opt_info.min_approx_improve = 1e-3;
+  trajopt_solver_profile->opt_info.min_trust_box_size = 1e-3;
+  auto test = tesseract_planning::toXMLFile(*trajopt_solver_profile, "/home/bi3ri/hotspray_ws/vontesseract1.xml");
+
+  tinyxml2::XMLDocument xmldocument;
+  tinyxml2::XMLNode* root_node = xmldocument.NewElement("Hotspray Montion Planning Pipeline");
+  xmldocument.InsertFirstChild(root_node);
+  std::cout << "the fuck" << std::endl;
+
+  auto plan_profile_xml = trajopt_plan_profile->toXML(xmldocument);
+  std::cout << "the fuck1" << std::endl;
+
+  root_node->InsertEndChild(plan_profile_xml);
+  std::cout << "the fuck2" << std::endl;
+
+  auto composite_profile_xml = trajopt_composite_profile->toXML(xmldocument);
+  root_node->InsertEndChild(composite_profile_xml);
+  std::cout << "the fuck3" << std::endl;
+
+  auto solver_profile_xml = trajopt_solver_profile->toXML(xmldocument);
+  std::cout << "the fuck4.5" << std::endl;
+
+  // root_node->InsertEndChild(solver_profile_xml);
+  // std::cout << "the fuck4" << std::endl;
+
+  xmldocument.SaveFile("/home/bi3ri/hotspray_ws/test1.xml");
+  std::cout << "the fuck5" << std::endl;
+
+  
+  // Add profile to Dictionary
+  planning_server.getProfiles()->addProfile<tesseract_planning::TrajOptPlanProfile>("CARTESIAN", trajopt_plan_profile);
+  planning_server.getProfiles()->addProfile<tesseract_planning::TrajOptCompositeProfile>("DEFAULT",
+                                                                                         trajopt_composite_profile);
+  planning_server.getProfiles()->addProfile<tesseract_planning::TrajOptSolverProfile>("DEFAULT",
+                                                                                      trajopt_solver_profile);
+
+
+  // Create Process Planning Request
+  ProcessPlanningRequest request;
+  request.name = new_planner_name;
+  request.instructions = Instruction(program);
+
+
+  // Create Naive Seed
+  /** @todo Need to improve simple planners to support external tcp definitions */
+  tesseract_planning::CompositeInstruction naive_seed;
+  {
+    auto lock = monitor_->lockEnvironmentRead();
+    naive_seed = tesseract_planning::generateNaiveSeed(program, *(monitor_->getEnvironment()));
+  }
+  request.seed = Instruction(naive_seed);
+
+  // Print Diagnostics
+  request.instructions.print("Program: ");
+  request.seed.print("Seed: ");
+
+  if (rviz_)
+    plotter->waitForInput();
+
+  // Solve process plan
+  ProcessPlanningFuture response = planning_server.run(request);
+  planning_server.waitForAll();
+
+  tesseract_common::JointTrajectory trajectory;
+
+  // Plot Process Trajectory
+  if (rviz_ && plotter != nullptr && plotter->isConnected())
+  {
+    plotter->waitForInput();
+    const auto& ci = response.results->as<tesseract_planning::CompositeInstruction>();
+    trajectory = tesseract_planning::toJointTrajectory(ci);
+    plotter->plotTrajectory(trajectory, env_->getStateSolver());
+  }
+
+  ROS_INFO("Final trajectory is collision free");
+
+  // namespace tesseract_ros_examples
+    
+    ROS_INFO("Final trajectory is collision free");
+    trajectory_msgs::JointTrajectory traj_msg;
+    toMsg(traj_msg, trajectory);
+    res.traj = traj_msg;
+  return true;
+}
+
+
+
+/**
+ * @brief Generate a JointTrajectory Message that contains only trajectory joints
+ * @param traj_msg The output JointTrajectory Message
+ * @param joint_names The joint names corresponding to the trajectory
+ * @param traj The joint trajectory
+ */
+// void toMsg(std::vector<tesseract_msgs::JointState>& traj_msg, const tesseract_common::JointTrajectory& traj);
+
