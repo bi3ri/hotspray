@@ -30,50 +30,50 @@
           </geometry>
         </collision>
 
-            <inertial>
+    <inertial>
       <mass value="10.0" />
       <inertia  ixx="1.0" ixy="0.0"  ixz="0.0"  iyy="1.0"  iyz="0.0"  izz="1.0" />
     </inertial>
 
     <!-- top -->
-        <collision>
+        <!-- <collision>
           <origin rpy="0 0 0" xyz="${offset} ${offset} ${table_height + workspace_height + wall_width/2}"/>
           <geometry>
              <box size="${workspace_width} ${workspace_width} ${wall_width}"/>
           </geometry>
-        </collision>
+        </collision> -->
 
     <!-- front -->
-        <collision>
+        <!-- <collision>
           <origin rpy="0 0 0" xyz="${offset} ${offset - workspace_width/2 - wall_width/2} ${table_height + workspace_height/2}"/>
           <geometry>
              <box size="${workspace_width} ${wall_width} ${workspace_height}"/>
           </geometry>
-        </collision>
+        </collision> -->
 
     <!-- back -->
-        <collision>
+        <!-- <collision>
           <origin rpy="0 0 0" xyz="${offset} ${offset + workspace_width/2 + wall_width/2} ${table_height + workspace_height/2}"/>
           <geometry>
              <box size="${workspace_width} ${wall_width} ${workspace_height}"/>
           </geometry>
-        </collision>
+        </collision> -->
 
     <!-- left -->
-        <collision>
+        <!-- <collision>
           <origin rpy="0 0 0" xyz="${offset - workspace_width/2 - wall_width/2} ${offset} ${table_height + workspace_height/2}"/>
           <geometry>
              <box size="${wall_width} ${workspace_width} ${workspace_height}"/>
           </geometry>
-        </collision>
+        </collision> -->
 
     <!-- right -->
-        <collision>
+        <!-- <collision>
           <origin rpy="0 0 0" xyz="${offset + workspace_width/2 + wall_width/2} ${offset} ${table_height + workspace_height/2}"/>
           <geometry>
              <box size="${wall_width} ${workspace_width} ${workspace_height}"/>
           </geometry>
-        </collision>
+        </collision> -->
 
     </link>
 

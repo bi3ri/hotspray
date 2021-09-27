@@ -102,10 +102,6 @@ sudo apt-get install ros-noetic-octomap-ros
 
 
 
-# Tesseract Python (not used until now)
-sudo apt install swig
-
-
 
 
 

@@ -18,6 +18,6 @@
     <param name="volume_z" value="320"/> -->
         <param name="volume_x" value="640"/>
     <param name="volume_y" value="640"/>
-    <param name="volume_z" value="320"/>
+    <param name="volume_z" value="224"/>
   </node>
 </launch>

@@ -1,0 +1,35 @@
+<?xml version="1.0" ?>
+
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <xacro:property name="deg_to_rad" value="0.01745329251994329577" />
+
+  <xacro:macro name="hotspray_camera" params="parent sim *origin camera_orbit_distance:=${'10.0'}">
+
+    <!--simulated camera -->  
+    <!-- <xacro:if value="${sim}"> -->
+      <xacro:include filename="$(find hotspray_description)/urdf/camera/_d435.urdf.xacro"/>
+        <xacro:arg name="add_plug" default="false" />
+          <xacro:sensor_d435 parent="${parent}" >
+        <xacro:insert_block name="origin"/>
+      </xacro:sensor_d435>
+    <!-- </xacro:if> -->
+
+    <!-- real camera -->  
+     <xacro:unless value="${sim}">
+      <xacro:include filename="$(find realsense2_description)/urdf/_d435.urdf.xacro" />
+        <xacro:arg name="use_nominal_extrinsics" default="false"/>
+        <xacro:arg name="add_plug" default="false" />
+        <xacro:sensor_d435 parent="${parent}" use_nominal_extrinsics="$(arg use_nominal_extrinsics)" add_plug="$(arg add_plug)">
+        <xacro:insert_block name="origin"/>
+        </xacro:sensor_d435>
+    </xacro:unless>
+
+    <link name="camera_orbit_frame"/>
+      <joint name="camera_orbit_joint" type="fixed">
+        <parent link="camera_link"/>
+      <child link="camera_orbit_frame"/>
+        <origin xyz="0.25 0.0 0.0" rpy="${5* pi/6} ${-pi/2} 0"/>
+    </joint>
+
+  </xacro:macro>
+</robot>

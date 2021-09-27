@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="debug" default="true" />
+  <arg name="debug_poses_path" default="/home/bi3ri/hotspray_ws/src/hotspray/hotspray_application/poses/scan2.poses.json" />
+  <arg name="trajopt_default_plan_profile_path" default="$(find hotspray_motion)/config/trajopt_default_plan_profile.xml" />
+  <arg name="trajopt_default_composite_profile_path" default="$(find hotspray_motion)/config/trajopt_default_composite_profle.xml" />
+  <arg name="descartes_plan_profile_path" default="$(find hotspray_motion)/config/descartes_plan_profile.xml" />
+
+  <node name="hotspray_motion" pkg="hotspray_motion" type="hotspray_motion_node" output="screen">
+    <param name="debug" value="$(arg debug)"/>
+    <param name="debug_poses_path" value="$(arg debug_poses_path)"/>
+    <param name="trajopt_default_composite_profile_path" value="$(arg trajopt_default_composite_profile_path)"/>
+    <param name="trajopt_default_plan_profile_path" value="$(arg trajopt_default_plan_profile_path)"/>
+    <param name="descartes_plan_profile_path" value="$(arg descartes_plan_profile_path)"/>
+
+  </node>
+</launch>

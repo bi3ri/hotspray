@@ -1,18 +1,27 @@
 <?xml version="1.0" ?>
 
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <!-- <xacro:property name="deg_to_rad" value="0.01745329251994329577" /> -->
 
   <xacro:macro name="hotspray_extruder" params="parent *origin spray_distance:=${'10.0'}">
-  
+
+      <!-- extruder_link -->  
+    <link name="extruder_link"/>
+      <joint name="extruder_link_joint" type="fixed">
+        <parent link="${parent}"/>
+      <child link="extruder_link"/>
+        <xacro:insert_block name="origin"/>
+      </joint>
+
     <link name="hotspray_extruder">
       <!-- TODO: inertia hotspray-->
       <inertial>
-        <origin  xyz="0 0 0" rpy="0 0 0" />
-        <mass value="0" />
-        <inertia ixx="0.00" ixy="0" ixz="0" iyy="0.00" iyz="0" izz="0.00" />
+        <origin  xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
+        <mass value="0.0" />
+        <inertia ixx="0.0" ixy="0.0" ixz="0.0" iyy="0.0" iyz="0.0" izz="0.0" />
       </inertial>
       <visual>
-        <origin  xyz="0 0 0" rpy="0 0 0" />
+        <origin  xyz="0 0 0" rpy="0 ${-pi/2} ${pi/2}" />
         <geometry>
           <mesh filename="package://hotspray_description/meshes/hotspray_extruder.stl" scale="0.001 0.001 0.001" />
         </geometry>
@@ -20,19 +29,42 @@
           <color rgba="0.8 0.8 0.9 1" />
         </material>
       </visual>
-      <!--collision>
-        <xacro:insert_block name="origin"/>
+      <collision>
+        <origin  xyz="-0.015 0.0 0.01" rpy="0.0 0.0 0.0" />
         <geometry>
-          <box size="0.195 0.04 0.27"/>
+          <box size="0.04 0.11 0.11"/>
         </geometry>
-      </collision-->
-    </link>
+      </collision>
+      </link>
 
-    <!--joint between fixture and hotspray-->
-    <joint name="hotspray_extruder_joint" type="fixed">
-      <xacro:insert_block name="origin"/>
-      <parent link="${parent}" />
+      <link name="hotspray_extruder_hose_collission">
+        <collision>
+          <origin  xyz="-0.015 0.13 -0.01" rpy="${pi/2} 0.0 0.0" />
+          <geometry>
+            <cylinder length="0.15" radius="0.02"/>
+          </geometry>
+        </collision>
+      </link>
+
+      <joint name="hotspray_extruder_hose_collission_joint" type="fixed">
+        <parent link="${parent}" />
+      <child link="hotspray_extruder_hose_collission" />
+        <xacro:insert_block name="origin"/>
+      </joint>
+
+    <!-- joint between fixture and hotspray -->
+      <joint name="hotspray_extruder_joint" type="fixed">
+        <parent link="${parent}" />
       <child link="hotspray_extruder" />
+        <xacro:insert_block name="origin"/>
+      </joint>
+
+    <!-- tcp_frame -->  
+    <link name="tcp_frame"/>
+      <joint name="tcp_frame_joint" type="fixed">
+        <parent link="extruder_link"/>
+      <child link="tcp_frame"/>
+        <origin xyz="-0.01 -0.03 0.16" rpy="0.0 0.0 0.0"/>
     </joint>
 
   </xacro:macro>

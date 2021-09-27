@@ -6,10 +6,11 @@
   <arg name="sim" default="true"/>
 
 
+
   <!-- startup simulated world -->
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
-    <arg name="world_name" default="$(find hotspray_description)/worlds/emtyp_world.world"/> 
-    <!--arg name="world_name" value="$(find hotspray_description)/worlds/ur5_robot.world"/-->
+    <arg name="world_name" default="$(find hotspray_description)/worlds/empty_world.world"/> 
+    <!-- arg name="world_name" value="$(find hotspray_description)/worlds/ur5_robot.world"/ -->
     <arg name="paused" value="$(arg paused)"/>
     <arg name="gui" value="$(arg gazebo_gui)"/>
   </include>
@@ -17,25 +18,25 @@
 
   <!-- push robot_description to factory and spawn robot in gazebo at the origin, change x,y,z arguments to spawn in a different position -->
   <node name="spawn_gazebo_model" pkg="gazebo_ros" type="spawn_model" args="-urdf -param robot_description -model ur5
-    -J elbow_joint 1.50
-    -J shoulder_lift_joint -1.50
-    -J shoulder_pan_joint 2.25
-    -J wrist_1_joint 0
-    -J wrist_2_joint 1.50
-    -J wrist_3_joint -0.85"
+    -J shoulder_pan_joint 2.35619
+    -J shoulder_lift_joint -1.5708
+    -J elbow_joint 1.5708
+    -J wrist_1_joint -1.5708
+    -J wrist_2_joint -1.5708
+    -J wrist_3_joint 0"
     respawn="false" output="screen" />
 
 
   <!-- <node if="$(arg sim)" name="spawn_test_model" pkg="gazebo_ros" type="spawn_model" args="-file $(find hotspray_description)/urdf/test_cylinder.urdf -urdf -model test_cylinder 
-    -x 0.5
-    -y 0.5 
-    -z 1.0"
+    -x 0.45
+    -y 0.45
+    -z 0.6"
     respawn="false" output="screen" /> -->
 
-    <node if="$(arg sim)" name="spawn_test_model" pkg="gazebo_ros" type="spawn_model" args="-file $(find hotspray_description)/urdf/coil.urdf -urdf -model coil 
-    -x 0.65
-    -y 0.65
-    -z 0.7"
+  <node if="$(arg sim)" name="spawn_test_model" pkg="gazebo_ros" type="spawn_model" args="-file $(find hotspray_description)/urdf/coil.urdf -urdf -model coil 
+    -x 0.6
+    -y 0.6
+    -z 0.51"
     respawn="false" output="screen" />
 
 

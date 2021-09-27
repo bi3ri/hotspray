@@ -1,0 +1,15 @@
+1<Profile name="DescartesDefaultProfile" version="1.0.0">
+    <Planner type="3">
+        <DescartesPlanProfile>
+            <VertexCollisions>
+                <Enabled>false</Enabled>
+            </VertexCollisions>
+            <EdgeCollisions>
+                <Enabled>false</Enabled>
+            </EdgeCollisions>
+            <NumberThreads>10</NumberThreads>
+            <AllowCollisions>true</AllowCollisions>
+            <Debug>true</Debug>
+        </DescartesPlanProfile>
+    </Planner>
+</Profile>

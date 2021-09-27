@@ -1,8 +1,5 @@
 
-# include <hotspray_application.hpp>
-
-
-
+#include <hotspray_application.h>
 
 int main(int argc, char** argv)
 {

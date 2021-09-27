@@ -28,6 +28,7 @@
 #include <tesseract_motion_planners/core/utils.h>
 #include <tesseract_visualization/markers/toolpath_marker.h>
 
+#include <hotspray_utils/hotspray_utils.h>
 
 
 class HotsprayMotionServer
@@ -35,10 +36,13 @@ class HotsprayMotionServer
     private:
         ros::NodeHandle nh_;
         ros::NodeHandle ph_;
-        ros::ServiceServer plan_trajectory_service_;
+        ros::ServiceServer plan_scan_trajectory_service_;
+        ros::ServiceServer plan_spray_trajectory_service_;
+
+
+
         ros::Publisher vis_pub_;
         //visualization_msgs::MarkerArray toolpath_markers_;
-        //hotspay_motion_config::pathPlanningConfig m_path_planning_config;
         tesseract_environment::Environment::Ptr env_;           /**< @brief Tesseract Manager Class */
         bool rviz_;
         bool plotting_;
@@ -48,25 +52,21 @@ class HotsprayMotionServer
         Eigen::VectorXd home_joint_pos_;
         std::vector<std::string> joint_names_;
 
+        std::string trajopt_default_plan_profile_path_;
+        std::string trajopt_default_composite_profile_path_;
+        std::string descartes_plan_profile_path_;
+
+        bool debug_;
 
     public: 
         HotsprayMotionServer(ros::NodeHandle); //, std::string config_path);
 
         bool generateScanTrajectory(hotspray_msgs::GenerateSprayTrajectory::Request &req, hotspray_msgs::GenerateSprayTrajectory::Response &res);
-
-        bool generateSprayTrajectory(hotspray_msgs::GenerateSprayTrajectory::Request &req,
-                hotspray_msgs::GenerateSprayTrajectory::Response &res);
+        
+        bool generateSprayTrajectory(hotspray_msgs::GenerateSprayTrajectory::Request &req, hotspray_msgs::GenerateSprayTrajectory::Response &res);
 
         void createProgramm(tesseract_planning::CompositeInstruction& program, const std::vector<geometry_msgs::PoseArray, std::allocator<geometry_msgs::PoseArray>> & _pose_arrys);
 
-
-        /**
-         * @brief Generate a JointTrajectory Message that contains only trajectory joints
-         * @param traj_msg The output JointTrajectory Message
-         * @param joint_names The joint names corresponding to the trajectory
-         * @param traj The joint trajectory
-         */
         void toMsg(trajectory_msgs::JointTrajectory& traj_msg, const tesseract_common::JointTrajectory& traj);
-
 
 };

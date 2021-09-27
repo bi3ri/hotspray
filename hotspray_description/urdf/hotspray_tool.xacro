@@ -1,9 +1,12 @@
 <?xml version="1.0" ?>
 
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <xacro:property name="deg_to_rad" value="0.01745329251994329577" />
 
   <xacro:macro name="hotspray_tool" params="parent *origin prefix:=${''} sim">
     <xacro:include filename="$(find hotspray_description)/urdf/hotspray_extruder.xacro"/>
+    <xacro:include filename="$(find hotspray_description)/urdf/hotspray_camera.xacro"/>
+    <xacro:property name="deg_to_rad" value="0.01745329251994329577" />
 
     <link name="hotspray_tool_link"/>
       <joint name="tool_to_ur5_tool0" type="fixed">
@@ -12,38 +15,21 @@
         <xacro:insert_block name="origin"/>
       </joint>
 
-    <!-- simulated camera -->  
-    <xacro:if value="${sim}">
-      <xacro:include filename="$(find hotspray_description)/urdf/camera/_d435.urdf.xacro"/>
-        <xacro:arg name="add_plug" default="false" />
-          <xacro:sensor_d435 parent="hotspray_tool_link" >
-        <origin xyz="-0.02 -0.0175 0.023" rpy="${pi/2} ${-pi/2} ${pi/2}"/>
-      </xacro:sensor_d435>
-    </xacro:if>
+    <!-- camera -->  
+      <!-- origin xyz="-0.035 -0.07 0.055" rpy="${-pi/2} ${-pi/2} ${pi/2}"  -->
+    <xacro:hotspray_camera parent="hotspray_tool_link" sim="${sim}">
+      <origin xyz="0.03 0.0 0.05" rpy="${pi/2} 0.0 0" />
+    </xacro:hotspray_camera>
 
-    <!-- real camera -->  
-    <xacro:unless value="${sim}">
-      <xacro:include filename="$(find realsense2_description)/urdf/_d435.urdf.xacro" />
-        <xacro:arg name="use_nominal_extrinsics" default="false"/>
-        <xacro:arg name="add_plug" default="false" />
-        <xacro:sensor_d435 parent="hotspray_tool_link" use_nominal_extrinsics="$(arg use_nominal_extrinsics)" add_plug="$(arg add_plug)">
-          <origin xyz="-0.02 -0.0175 0.023" rpy="${pi/2} ${-pi/2} ${pi/2}"/>
-        </xacro:sensor_d435>
-    </xacro:unless>
-  
     <!-- extruder -->  
-      <xacro:hotspray_extruder parent="hotspray_tool_link">
-        <!-- origin xyz="-0.035 -0.07 0.055" rpy="${-pi/2} ${-pi/2} ${pi/2}" /-->
-        <origin xyz="0.12 -0.03 0.04" rpy="0 ${-pi/2} ${pi/2}" />
-      </xacro:hotspray_extruder>
+    <xacro:hotspray_extruder parent="hotspray_tool_link">
+      <!-- <origin xyz="-0.1 -0.04 0.04" rpy="${-2 * pi/3} 0 ${pi}" /> -->
+      <!-- <origin xyz="-0.1 -0.04 0.04" rpy="${-pi/3} 0 ${pi}" /> -->
+      <origin xyz="-0.1 -0.04 0.04" rpy="${-pi/2} 0 ${pi}" />
 
-    <!-- tcp -->  
-    <link name="tcp_frame"/>
-      <joint name="tcp_frame_joint" type="fixed">
-        <parent link="tool0"/>
-      <child link="tcp_frame"/>
-        <origin xyz="0.12 0.03 0.16" rpy="0 0 ${pi/4}"/>
-    </joint>
-      
+    </xacro:hotspray_extruder>
+
+
   </xacro:macro>
+
 </robot>

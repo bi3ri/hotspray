@@ -17,23 +17,131 @@
 
 #include <hotspray_utils/hotspray_utils.h>
 
-bool HotsprayUtils::saveTrajectoryToFile(const trajectory_msgs::JointTrajectory& trajectory, const std::string name){
-    std::string path = ros::package::getPath("hotspray_application");
+
+bool HotsprayUtils::savePoseArrayMsgToJsonFile(geometry_msgs::PoseArray& pose_array, const std::string file_path){
+  nlohmann::json json_pose_array = convertToJson(pose_array);
+  saveJson(file_path, json_pose_array);
+  return 0;
+}
+
+bool HotsprayUtils::loadPoseArrayMsgFromJsonFile(geometry_msgs::PoseArray& pose_array, const std::string& file_path){
+  nlohmann::json json_pose_array;
+  loadJson(file_path, json_pose_array);
+  pose_array = convertToPoseArrayMsg(json_pose_array);
+  return 0;
+}
+
+float HotsprayUtils::euclideanDistance(const geometry_msgs::Pose& pose1,const geometry_msgs::Pose& pose2){
+  float distance_x = pose1.position.x - pose2.position.x;
+  float distance_y = pose1.position.y - pose2.position.y;
+  float distance_z = pose1.position.z - pose2.position.z;
+  return std::sqrt(std::pow(distance_x, 2) + std::pow(distance_y, 2) + std::pow(distance_z, 2));
+}
+
+nlohmann::json HotsprayUtils::convertToJson(geometry_msgs::PoseArray& pose_array){
+  nlohmann::json json_pose_array;
+  int idx = 1;
+  for(geometry_msgs::Pose pose : pose_array.poses){
+    nlohmann::json json_pose = 
+      {
+        {"id", idx++},
+        {"position",
+          {
+            {"x", pose.position.x},
+            {"y", pose.position.y},
+            {"z", pose.position.z}
+          }
+        },
+        {"orientation",
+          {
+            {"x", pose.orientation.x},
+            {"y", pose.orientation.y}, 
+            {"z", pose.orientation.z},
+            {"w", pose.orientation.w}
+          }
+        }
+      };
+  json_pose_array.push_back(json_pose);
+  } 
+  return json_pose_array;
+}
+
+nlohmann::json HotsprayUtils::convertToJson(std::vector<Eigen::Isometry3d> eigen_pose_aray){
+  geometry_msgs::PoseArray pose_array = convertToPoseArrayMsg(eigen_pose_aray);
+  return convertToJson(pose_array);
+}
+
+std::vector<Eigen::Isometry3d> HotsprayUtils::convertToEigenPoseArray(nlohmann::json& json_pose_array){
+  std::vector<Eigen::Isometry3d> eigen_pose_array;
+  for(int i = 0; i < json_pose_array.size(); i++){
+    geometry_msgs::Pose pose;
+    pose.position.x = json_pose_array[i]["position"]["x"];
+    pose.position.y = json_pose_array[i]["position"]["y"];
+    pose.position.z = json_pose_array[i]["position"]["z"];
+    pose.orientation.x = json_pose_array[i]["orientation"]["x"];
+    pose.orientation.y = json_pose_array[i]["orientation"]["y"];
+    pose.orientation.z = json_pose_array[i]["orientation"]["z"];
+    pose.orientation.w = json_pose_array[i]["orientation"]["w"];
+
+    Eigen::Isometry3d eigen_pose;
+    tf::poseMsgToEigen(pose, eigen_pose);
+    eigen_pose_array.push_back(eigen_pose);
+  }
+  return eigen_pose_array;
+}
+
+std::vector<Eigen::Isometry3d> convertToEigenPoseArray(geometry_msgs::PoseArray& pose_array){
+std::vector<Eigen::Isometry3d> eigen_pose_array;
+  for(auto& pose : pose_array.poses){
+    Eigen::Isometry3d eigen_pose;
+    tf::poseMsgToEigen(pose, eigen_pose);
+    eigen_pose_array.push_back(eigen_pose);
+  }
+  return eigen_pose_array;
+}
+
+
+geometry_msgs::PoseArray HotsprayUtils::convertToPoseArrayMsg(nlohmann::json& json_pose_array){
+  geometry_msgs::PoseArray pose_array;
+  for(int i = 0; i < json_pose_array.size(); i++){
+    geometry_msgs::Pose pose;
+    pose.position.x = json_pose_array[i]["position"]["x"];
+    pose.position.y = json_pose_array[i]["position"]["y"];
+    pose.position.z = json_pose_array[i]["position"]["z"];
+    pose.orientation.x = json_pose_array[i]["orientation"]["x"];
+    pose.orientation.y = json_pose_array[i]["orientation"]["y"];
+    pose.orientation.z = json_pose_array[i]["orientation"]["z"];
+    pose.orientation.w = json_pose_array[i]["orientation"]["w"];
+    pose_array.poses.push_back(pose);
+  }
+  return pose_array;
+}
+
+void HotsprayUtils::loadJson(std::string path, nlohmann::json& json_pose_array){
+  std::ifstream ifs(path);
+  json_pose_array = nlohmann::json::parse(ifs);
+}
+
+void HotsprayUtils::saveJson(std::string path, nlohmann::json& json_pose_array){
+  std::ofstream of(path);
+  of << std::setw(4) << json_pose_array << std::endl;
+}
+
+bool HotsprayUtils::saveTrajectoryMsgToBagFile(const trajectory_msgs::JointTrajectory& trajectory, const std::string path){
     rosbag::Bag bag;
-    bag.open(path + "/trajectories/" + name + ".trajectory.bag", rosbag::bagmode::Write);
-    bag.write(name, ros::Time::now(), trajectory);
+    bag.open(path, rosbag::bagmode::Write);
+    bag.write("trajectory", ros::Time::now(), trajectory);
     bag.close();
     return 0;
 }
 
-bool HotsprayUtils::loadTrajectoryFromFile(trajectory_msgs::JointTrajectory& trajectory, const std::string& name){
-    std::string path = ros::package::getPath("hotspray_application");
+bool HotsprayUtils::loadTrajectoryMsgFromBagFile(trajectory_msgs::JointTrajectory& trajectory, const std::string& path){
     rosbag::Bag bag;
-    bag.open(path + "/trajectories/" + name + ".trajectory.bag", rosbag::bagmode::Read);
+    bag.open(path, rosbag::bagmode::Read);
 
     boost::shared_ptr<trajectory_msgs::JointTrajectory> tmp_traj_ptr;
 
-    for (const rosbag::MessageInstance& m : rosbag::View(bag)) //TODO: keine schleife?
+    for (const rosbag::MessageInstance& m : rosbag::View(bag)) 
     {
         tmp_traj_ptr = m.instantiate<trajectory_msgs::JointTrajectory>();
     }
@@ -43,19 +151,17 @@ bool HotsprayUtils::loadTrajectoryFromFile(trajectory_msgs::JointTrajectory& tra
     return 0;
 }
 
-bool HotsprayUtils::savePoseArrayToFile(const geometry_msgs::PoseArray& pose_array, const std::string& name){
-    std::string path = ros::package::getPath("hotspray_application");
+bool HotsprayUtils::savePoseArrayMsgToBagFile(const geometry_msgs::PoseArray& pose_array, const std::string& path){
     rosbag::Bag bag;
-    bag.open(path + "/poses/" + name + ".pose_array.bag", rosbag::bagmode::Write);
-    bag.write(name, ros::Time::now(), pose_array);
+    bag.open(path, rosbag::bagmode::Write);
+    bag.write("pose_array", ros::Time::now(), pose_array);
     bag.close();
     return 0;
 }
 
-bool HotsprayUtils::loadPoseArrayFromFile(geometry_msgs::PoseArray& pose_array, const std::string& name){
-    std::string path = ros::package::getPath("hotspray_application");
+bool HotsprayUtils::loadPoseArrayMsgFromBagFile(geometry_msgs::PoseArray& pose_array, const std::string& path){
     rosbag::Bag bag;
-    bag.open(path + "/poses/" + name + ".pose_array.bag", rosbag::bagmode::Read);
+    bag.open(path, rosbag::bagmode::Read);
 
     boost::shared_ptr<geometry_msgs::PoseArray> tmp_pose_array;
 
@@ -69,7 +175,6 @@ bool HotsprayUtils::loadPoseArrayFromFile(geometry_msgs::PoseArray& pose_array, 
     bag.close();
     return 0;
 }
-
 
 Eigen::Affine3d HotsprayUtils::create_rotation_matrix(double ax, double ay, double az) {
   Eigen::Affine3d rx =
@@ -107,6 +212,18 @@ void HotsprayUtils::applyTranformationToPoseArray(std::vector<geometry_msgs::Pos
 
 }
 
+void HotsprayUtils::applyTranformationToPoseArray(std::vector<Eigen::Isometry3d>& pose_array, double x, double y, double z, double ax, double ay, double az){
+    Eigen::Affine3d r = create_rotation_matrix(ax, ay, az);
+    Eigen::Affine3d t(Eigen::Translation3d(Eigen::Vector3d(x, y, z)));
+    Eigen::Matrix4d m = (t * r).matrix(); 
+
+    for(auto& pose : pose_array)
+    {
+      pose = pose * m;
+    }
+
+}
+
 visualization_msgs::MarkerArray HotsprayUtils::convertToAxisMarkers(const std::vector<Eigen::Isometry3d>& pose_array,
                                                      const std::string& frame_id,
                                                      const std::string& ns,
@@ -136,7 +253,7 @@ visualization_msgs::MarkerArray HotsprayUtils::convertToAxisMarkers(const std::v
 
   // markers for each axis line
   int marker_id = start_id;
-  visualization_msgs::Marker x_axis_marker = create_line_marker(++marker_id, std::make_tuple(1.0, 0.0, 0.0, 1.0)); //red
+  visualization_msgs::Marker x_axis_marker = create_line_marker(marker_id, std::make_tuple(1.0, 0.0, 0.0, 1.0)); //red
   visualization_msgs::Marker y_axis_marker = create_line_marker(++marker_id, std::make_tuple(0.0, 1.0, 0.0, 1.0)); //green
   visualization_msgs::Marker z_axis_marker = create_line_marker(++marker_id, std::make_tuple(0.0, 0.0, 1.0, 1.0)); //blue
 
@@ -175,6 +292,17 @@ visualization_msgs::MarkerArray HotsprayUtils::convertToAxisMarkers(const std::v
   return markers;
 }
 
+geometry_msgs::PoseArray HotsprayUtils::convertToPoseArrayMsg(const std::vector<Eigen::Isometry3d>& eigen_pose_array){
+  geometry_msgs::PoseArray pose_array;
+
+  for(auto& eigen_pose : eigen_pose_array){
+    geometry_msgs::Pose pose;
+    tf::poseEigenToMsg(eigen_pose, pose);
+    pose_array.poses.push_back(pose);
+  }
+  return pose_array;
+}
+
 visualization_msgs::MarkerArray HotsprayUtils::convertToAxisMarkers(const std::vector<geometry_msgs::PoseArray>& pose_arrays,
                                                      const std::string& frame_id,
                                                      const std::string& ns,
@@ -204,7 +332,7 @@ visualization_msgs::MarkerArray HotsprayUtils::convertToAxisMarkers(const std::v
 
   // markers for each axis line
   int marker_id = start_id;
-  visualization_msgs::Marker x_axis_marker = create_line_marker(++marker_id, std::make_tuple(1.0, 0.0, 0.0, 1.0));
+  visualization_msgs::Marker x_axis_marker = create_line_marker(marker_id, std::make_tuple(1.0, 0.0, 0.0, 1.0));
   visualization_msgs::Marker y_axis_marker = create_line_marker(++marker_id, std::make_tuple(0.0, 1.0, 0.0, 1.0));
   visualization_msgs::Marker z_axis_marker = create_line_marker(++marker_id, std::make_tuple(0.0, 0.0, 1.0, 1.0));
 
@@ -239,9 +367,6 @@ visualization_msgs::MarkerArray HotsprayUtils::convertToAxisMarkers(const std::v
       }
     }
 
-
-
-
   markers.markers.push_back(x_axis_marker);
   markers.markers.push_back(y_axis_marker);
   markers.markers.push_back(z_axis_marker);
@@ -258,50 +383,10 @@ static Eigen::Matrix3d computeRotation(const Eigen::Vector3d& vx, const Eigen::V
   return m;
 }
 
-void HotsprayUtils::convertResponseArrayToPoseArray(const std_msgs::Float64MultiArray& response_array, std::vector<Eigen::Isometry3d>& pose_array)
-{
-    int number_of_poses = response_array.data.size() / 12;
-        
-    std::cout << "number of poses" << number_of_poses << std::endl;
-
-    geometry_msgs::PoseArray pose_array_;
-
-    int idx = 0;
-
-    for(int i = 0; i < number_of_poses; i++){
-        geometry_msgs::Pose pose;
-        Eigen::Isometry3d eigen_pose;
-
-        Eigen::Vector3d p, vx, vy, vz;
-
-        idx = i * 12;
-
-        p.data()[0] = response_array.data[idx+0];
-        p.data()[1] = response_array.data[idx+1];
-        p.data()[2] = response_array.data[idx+2];
-
-        vx.data()[0] = response_array.data[idx+3];
-        vx.data()[1] = response_array.data[idx+4];
-        vx.data()[2] = response_array.data[idx+5];
-
-        vy.data()[0] = response_array.data[idx+6];
-        vy.data()[1] = response_array.data[idx+7];
-        vy.data()[2] = response_array.data[idx+8];
-
-        vz.data()[0] = response_array.data[idx+9];
-        vz.data()[1] = response_array.data[idx+10];
-        vz.data()[2] = response_array.data[idx+11];
-
-        eigen_pose = Eigen::Translation3d(p) * Eigen::AngleAxisd(computeRotation(vx, vy, vz));
-
-        pose_array.push_back(eigen_pose);
-    }
-}
-
-void HotsprayUtils::convertResponseArrayToPoseArray(const std_msgs::Float64MultiArray& response_array, std::vector<geometry_msgs::PoseArray> &pose_array){
+geometry_msgs::PoseArray HotsprayUtils::convertToPoseArrayMsg(const std_msgs::Float64MultiArray& response_array){
 
     int number_of_poses = response_array.data.size() / 12;
-    geometry_msgs::PoseArray pose_array_;
+    geometry_msgs::PoseArray pose_array;
 
     int idx = 0;
     for(int i = 0; i < number_of_poses; i++){
@@ -328,135 +413,42 @@ void HotsprayUtils::convertResponseArrayToPoseArray(const std_msgs::Float64Multi
 
         eigen_pose = Eigen::Translation3d(p) * Eigen::AngleAxisd(computeRotation(vx, vy, vz));
         tf::poseEigenToMsg(eigen_pose, pose);
-        pose_array_.poses.push_back(pose);
+        pose_array.poses.push_back(pose);
     }
-    pose_array.push_back(pose_array_);
-}
-
-void HotsprayUtils::convertPoseArrayMsgToJson(geometry_msgs::PoseArray& pose_array, nlohmann::json& json_pose_array){
-  int idx = 0;
-  for(geometry_msgs::Pose pose : pose_array.poses){
-    nlohmann::json json_pose = 
-      {
-        {"position",
-          {
-            {"x", pose.position.x},
-            {"y", pose.position.y},
-            {"z", pose.position.z}
-          }
-        },
-        {"orientation",
-          {
-            {"x", pose.orientation.x},
-            {"y", pose.orientation.y},
-            {"z", pose.orientation.z},
-            {"w", pose.orientation.w}
-          }
-        }
-      };
-  json_pose_array.push_back(json_pose);
-  } 
-}
-
-void HotsprayUtils::convertJsonToPoseArrayMsg(nlohmann::json& json_pose_array, geometry_msgs::PoseArray& pose_array){
-  for(int i = 0; i < json_pose_array.size(); i++){
-    geometry_msgs::Pose pose;
-    pose.position.x = json_pose_array[i]["position"]["x"];
-    pose.position.y = json_pose_array[i]["position"]["y"];
-    pose.position.z = json_pose_array[i]["position"]["z"];
-    pose.orientation.x = json_pose_array[i]["orientation"]["x"];
-    pose.orientation.y = json_pose_array[i]["orientation"]["y"];
-    pose.orientation.z = json_pose_array[i]["orientation"]["z"];
-    pose.orientation.w = json_pose_array[i]["orientation"]["w"];
-    pose_array.poses.push_back(pose);
-  }
-}
-
-void HotsprayUtils::loadJson(std::string path, nlohmann::json& json_pose_array){
-  std::ifstream ifs(path);
-  json_pose_array = nlohmann::json::parse(ifs);
-}
-
-void HotsprayUtils::saveJson(std::string path, nlohmann::json& json_pose_array){
-  std::ofstream of(path);
-  of << std::setw(4) << json_pose_array << std::endl;
+    return pose_array;
 }
 
 
-/*
-visualization_msgs::MarkerArray
-HotsprayUtils::convertToArrowMarkers(const noether_msgs::ToolPaths& toolpaths,
-                      const std::string& frame_id,
-                      const std::string& ns,
-                      const std::size_t start_id,
-                      const float arrow_diameter,
-                      const float point_size,
-                      const std::tuple<float, float, float, float, float, float>& offset)
-{
-  visualization_msgs::MarkerArray markers_msgs;
-  visualization_msgs::Marker arrow_marker, points_marker;
-  const geometry_msgs::Pose pose_msg = pose3DtoPoseMsg(offset);
+std::vector<Eigen::Isometry3d> HotsprayUtils::convertToEigenPoseArray(const std_msgs::Float64MultiArray& response_array){
+    std::vector<Eigen::Isometry3d> eigen_pose_array;
+    int number_of_poses = response_array.data.size() / 12;
+    geometry_msgs::PoseArray pose_array_;
 
-  // configure arrow marker
-  arrow_marker.action = arrow_marker.ADD;
-  std::tie(arrow_marker.color.r, arrow_marker.color.g, arrow_marker.color.b, arrow_marker.color.a) =
-      std::make_tuple(1.0, 1.0, 0.2, 1.0);
-  arrow_marker.header.frame_id = frame_id;
-  arrow_marker.type = arrow_marker.ARROW;
-  arrow_marker.id = start_id;
-  arrow_marker.lifetime = ros::Duration(0);
-  arrow_marker.ns = ns;
-  std::tie(arrow_marker.scale.x, arrow_marker.scale.y, arrow_marker.scale.z) =
-      std::make_tuple(arrow_diameter, 4.0 * arrow_diameter, 4.0 * arrow_diameter);
+    int idx = 0;
+    for(int i = 0; i < number_of_poses; i++){
+        geometry_msgs::Pose pose;
+        Eigen::Isometry3d eigen_pose;
+        Eigen::Vector3d p, vx, vy, vz;
+        idx = i * 12;
 
-  // configure point marker
-  points_marker = arrow_marker;
-  points_marker.type = points_marker.POINTS;
-  points_marker.ns = ns;
-  points_marker.pose = pose_msg;
-  std::tie(points_marker.color.r, points_marker.color.g, points_marker.color.b, points_marker.color.a) =
-      std::make_tuple(0.1, .8, 0.2, 1.0);
-  std::tie(points_marker.scale.x, points_marker.scale.y, points_marker.scale.z) =
-      std::make_tuple(point_size, point_size, point_size);
+        p.data()[0] = response_array.data[idx+0];
+        p.data()[1] = response_array.data[idx+1];
+        p.data()[2] = response_array.data[idx+2];
 
-  auto transformPoint = [](const geometry_msgs::Pose& pose_msg,
-                           const geometry_msgs::Point& p_msg) -> geometry_msgs::Point {
-    auto new_p_msg = p_msg;
-    Eigen::Isometry3d transform;
-    Eigen::Vector3d p, new_p;
-    tf::poseMsgToEigen(pose_msg, transform);
-    tf::pointMsgToEigen(p_msg, p);
-    new_p = transform * p;
-    tf::pointEigenToMsg(new_p, new_p_msg);
-    return new_p_msg;
-  };
+        vx.data()[0] = response_array.data[idx+3];
+        vx.data()[1] = response_array.data[idx+4];
+        vx.data()[2] = response_array.data[idx+5];
 
-  int id_counter = static_cast<int>(start_id);
-  for (const noether_msgs::ToolPath& tool_path : toolpaths.paths)
-  {
-    for (const geometry_msgs::PoseArray& segment : tool_path.segments)
-    {
-      points_marker.points.clear();
-      points_marker.points.push_back(segment.poses.front().position);
-      for (std::size_t i = 1; i < segment.poses.size(); i++)
-      {
-        arrow_marker.points.clear();
-        geometry_msgs::Point p_start = transformPoint(pose_msg, segment.poses[i - 1].position);
-        geometry_msgs::Point p_end = transformPoint(pose_msg, segment.poses[i].position);
-        arrow_marker.points.push_back(p_start);
-        arrow_marker.points.push_back(p_end);
-        arrow_marker.id = (++id_counter);
-        markers_msgs.markers.push_back(arrow_marker);
-      }
-      points_marker.points.push_back(segment.poses.back().position);
+        vy.data()[0] = response_array.data[idx+6];
+        vy.data()[1] = response_array.data[idx+7];
+        vy.data()[2] = response_array.data[idx+8];
 
-      points_marker.id = (++id_counter);
-      markers_msgs.markers.push_back(points_marker);
+        vz.data()[0] = response_array.data[idx+9];
+        vz.data()[1] = response_array.data[idx+10];
+        vz.data()[2] = response_array.data[idx+11];
+
+        eigen_pose = Eigen::Translation3d(p) * Eigen::AngleAxisd(computeRotation(vx, vy, vz));
+        eigen_pose_array.push_back(eigen_pose);
     }
-  }
-
-
-  return markers_msgs;
+    return eigen_pose_array;
 }
-
-  */
