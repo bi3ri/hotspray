@@ -23,6 +23,8 @@ COMPONENTS
     pcl_conversions
     std_msgs
 
+    ur_msgs
+
     roslib
     roscpp
     std_msgs
@@ -145,6 +147,7 @@ catkin_package(
     roscpp
     rosbag
     std_msgs
+    ur_msgs
  DEPENDS 
     Eigen3 
     yaml-cpp

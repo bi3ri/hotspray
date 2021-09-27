@@ -35,6 +35,7 @@ class HotsprayApplication {
 private:
     ros::NodeHandle nh_;
     ros::NodeHandle ph_;
+    ros::ServiceClient spray_client_;
     ros::ServiceClient mesh_client_;
     ros::ServiceClient toolpath_client_;
     ros::ServiceClient scan_trajectory_client_;
@@ -72,7 +73,9 @@ bool generateSprayTrajectory(std::vector<geometry_msgs::PoseArray>& pose_arrays,
 
 bool executeTrajectory(trajectory_msgs::JointTrajectory& trajectory);
 
-void noetherMsgtoPoseArrayMsg(std::vector<noether_msgs::ToolPaths>& raster_paths, std::vector<geometry_msgs::PoseArray>& pose_arrays);
+bool startSpray();
+
+bool stopSpray();
 
 void tfToPose(const tf::StampedTransform& tf, geometry_msgs::Pose& pose);
 

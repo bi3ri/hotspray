@@ -37,6 +37,8 @@
   <depend>tubular_toolpath_creator</depend>
   <depend>hotspray_utils</depend>
   <depend>yaml-cpp</depend>
+  <depend>ur_msgs</depend>
+
   <depend>message_generation</depend>
 
 </package>

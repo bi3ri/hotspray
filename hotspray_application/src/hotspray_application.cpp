@@ -16,6 +16,17 @@
 
 #include <Eigen/StdVector>
 
+#include "ur_msgs/SetIO.h"
+#include "ur_msgs/SetPayload.h"
+#include "ur_msgs/SetPayloadRequest.h"
+#include "ur_msgs/SetPayloadResponse.h"
+#include "ur_msgs/SetIORequest.h"
+#include "ur_msgs/SetIOResponse.h"
+#include "ur_msgs/IOStates.h"
+#include "ur_msgs/Digital.h"
+#include "ur_msgs/Analog.h"
+#include "std_msgs/String.h"
+
 #include <std_msgs/Float64MultiArray.h>
 #include <yak_ros_msgs/GenerateMesh.h>
 #include <eigen_conversions/eigen_msg.h> 
@@ -37,6 +48,7 @@ const std::string EXECUTE_TRAJECTORY_ACTION = "execute_trajectory";
 HotsprayApplication::HotsprayApplication(ros::NodeHandle nh) :
     nh_(nh),
     ph_("~"),
+    spray_client_(nh_.serviceClient<ur_msgs::SetIO>("ur_driver/set_io")),
     mesh_client_(nh_.serviceClient<yak_ros_msgs::GenerateMesh>("/tsdf_node/generate_mesh")),
     toolpath_client_(nh_.serviceClient<hotspray_msgs::GenerateToolpath>("/plane_slicer_example/generate_toolpath")),
     scan_trajectory_client_(nh_.serviceClient<hotspray_msgs::GenerateSprayTrajectory>("/hotspray_motion/generate_scan_trajectory")),
@@ -245,18 +257,46 @@ bool HotsprayApplication::executeTrajectory(trajectory_msgs::JointTrajectory& tr
     return 0;
 }
 
-// void HotsprayApplication::noetherMsgtoPoseArrayMsg(std::vector<noether_msgs::ToolPaths>& raster_paths, std::vector<geometry_msgs::PoseArray>& pose_array){
+bool HotsprayApplication::startSpray(){
+    ur_msgs::SetIO set_io;
+    set_io.request.pin = 1; // pin
+    set_io.request.state = 1; // state
+    
+    // set_io.request.FUN_SET_DIGITAL_OUT = 1; //state
+    // set_io.request.FUN_SET_ANALOG_OUT = 3;
 
-//     for(noether_msgs::ToolPaths& raster_path : raster_paths){
-//         for(noether_msgs::ToolPath& path : raster_path.paths){
-//             for(geometry_msgs::PoseArray& segments : path.segments){
-//                 segments.header.frame_id = yak_scan_frame_;
-//                 pose_array.push_back(segments);
-//             }
-//         }
-//     }
 
-// }
+    if(spray_client_.call(set_io))
+    {
+        ROS_INFO("Call to service UR driver start spray was successful");
+        return 0;
+    }
+    else
+    {
+        ROS_ERROR("Failed to call service UR driver start spray!");
+        return -1;
+    }
+}
+
+bool HotsprayApplication::stopSpray(){
+    ur_msgs::SetIO set_io;
+    set_io.request.fun = 1; // pin
+    set_io.request.pin = 1; // pin
+    set_io.request.state = 1; // state
+    // set_io.request.FUN_SET_DIGITAL_OUT = 0; //state
+    // set_io.request.FUN_SET_ANALOG_OUT = 0;
+
+    if(spray_client_.call(set_io))
+    {
+        ROS_INFO("Call to service UR driver stop spray was successful");
+        return 0;
+    }
+    else
+    {
+        ROS_ERROR("Failed to call service UR driver stop spray!");
+        return -1;
+    }
+}
 
 void HotsprayApplication::tfToPose(const tf::StampedTransform& tf, geometry_msgs::Pose& pose){
         pose.position.x = tf.getOrigin().x();
@@ -267,6 +307,8 @@ void HotsprayApplication::tfToPose(const tf::StampedTransform& tf, geometry_msgs
         pose.orientation.y = tf.getRotation().getY();
         pose.orientation.z = tf.getRotation().getZ();
 }
+
+
 
 bool HotsprayApplication::run()
 {
