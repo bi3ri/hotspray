@@ -31,6 +31,13 @@ bool HotsprayUtils::loadPoseArrayMsgFromJsonFile(geometry_msgs::PoseArray& pose_
   return 0;
 }
 
+bool HotsprayUtils::loadPoseArrayMsgFromJsonFile(std::vector<geometry_msgs::PoseArray>& pose_arrays, const std::string& file_path){
+  nlohmann::json json_pose_array;
+  loadJson(file_path, json_pose_array);
+  pose_arrays = convertToVectorPoseArrayMsg(json_pose_array);
+  return 0;
+}
+
 float HotsprayUtils::euclideanDistance(const geometry_msgs::Pose& pose1,const geometry_msgs::Pose& pose2){
   float distance_x = pose1.position.x - pose2.position.x;
   float distance_y = pose1.position.y - pose2.position.y;
@@ -38,10 +45,22 @@ float HotsprayUtils::euclideanDistance(const geometry_msgs::Pose& pose1,const ge
   return std::sqrt(std::pow(distance_x, 2) + std::pow(distance_y, 2) + std::pow(distance_z, 2));
 }
 
+bool HotsprayUtils::isSamePose(const geometry_msgs::Pose& pose1, const geometry_msgs::Pose& pose2, const float epsilon){
+  if((pose1.position.x - pose2.position.x) < epsilon &&
+    (pose1.position.y - pose2.position.y) < epsilon &&
+    (pose1.position.z - pose2.position.z) < epsilon &&
+    (pose1.orientation.x - pose2.orientation.x) < epsilon &&
+    (pose1.orientation.y - pose2.orientation.y) < epsilon &&
+    (pose1.orientation.z - pose2.orientation.z) < epsilon &&
+    (pose1.orientation.w - pose2.orientation.w) < epsilon)
+      return true;
+  return false;
+}
+
 nlohmann::json HotsprayUtils::convertToJson(geometry_msgs::PoseArray& pose_array){
   nlohmann::json json_pose_array;
   int idx = 1;
-  for(geometry_msgs::Pose pose : pose_array.poses){
+  for(const geometry_msgs::Pose& pose : pose_array.poses){
     nlohmann::json json_pose = 
       {
         {"id", idx++},
@@ -64,6 +83,18 @@ nlohmann::json HotsprayUtils::convertToJson(geometry_msgs::PoseArray& pose_array
   json_pose_array.push_back(json_pose);
   } 
   return json_pose_array;
+}
+
+nlohmann::json HotsprayUtils::convertToJson(std::vector<geometry_msgs::PoseArray>& pose_arrays){
+  nlohmann::json json_pose_arrays;
+
+  for(auto& pose_array : pose_arrays){
+
+    auto json_pose_array = convertToJson(pose_array);
+
+    json_pose_arrays.push_back(json_pose_array);
+  } 
+  return json_pose_arrays;
 }
 
 nlohmann::json HotsprayUtils::convertToJson(std::vector<Eigen::Isometry3d> eigen_pose_aray){
@@ -90,7 +121,7 @@ std::vector<Eigen::Isometry3d> HotsprayUtils::convertToEigenPoseArray(nlohmann::
   return eigen_pose_array;
 }
 
-std::vector<Eigen::Isometry3d> convertToEigenPoseArray(geometry_msgs::PoseArray& pose_array){
+std::vector<Eigen::Isometry3d> HotsprayUtils::convertToEigenPoseArray(const geometry_msgs::PoseArray& pose_array){
 std::vector<Eigen::Isometry3d> eigen_pose_array;
   for(auto& pose : pose_array.poses){
     Eigen::Isometry3d eigen_pose;
@@ -100,9 +131,9 @@ std::vector<Eigen::Isometry3d> eigen_pose_array;
   return eigen_pose_array;
 }
 
-
 geometry_msgs::PoseArray HotsprayUtils::convertToPoseArrayMsg(nlohmann::json& json_pose_array){
   geometry_msgs::PoseArray pose_array;
+
   for(int i = 0; i < json_pose_array.size(); i++){
     geometry_msgs::Pose pose;
     pose.position.x = json_pose_array[i]["position"]["x"];
@@ -114,7 +145,30 @@ geometry_msgs::PoseArray HotsprayUtils::convertToPoseArrayMsg(nlohmann::json& js
     pose.orientation.w = json_pose_array[i]["orientation"]["w"];
     pose_array.poses.push_back(pose);
   }
+
   return pose_array;
+}
+
+std::vector<geometry_msgs::PoseArray> HotsprayUtils::convertToVectorPoseArrayMsg(nlohmann::json& json_pose_arrays){
+  geometry_msgs::PoseArray pose_array;
+  std::vector<geometry_msgs::PoseArray> pose_arrays;
+
+  for(int j = 0; j < json_pose_arrays.size(); j++){
+    auto json_pose_array = json_pose_arrays[j];
+    for(int i = 0; i < json_pose_array.size(); i++){
+      geometry_msgs::Pose pose;
+      pose.position.x = json_pose_array[i]["position"]["x"];
+      pose.position.y = json_pose_array[i]["position"]["y"];
+      pose.position.z = json_pose_array[i]["position"]["z"];
+      pose.orientation.x = json_pose_array[i]["orientation"]["x"];
+      pose.orientation.y = json_pose_array[i]["orientation"]["y"];
+      pose.orientation.z = json_pose_array[i]["orientation"]["z"];
+      pose.orientation.w = json_pose_array[i]["orientation"]["w"];
+      pose_array.poses.push_back(pose);
+    }
+    pose_arrays.push_back(pose_array);
+  }
+  return pose_arrays;
 }
 
 void HotsprayUtils::loadJson(std::string path, nlohmann::json& json_pose_array){
@@ -383,72 +437,3 @@ static Eigen::Matrix3d computeRotation(const Eigen::Vector3d& vx, const Eigen::V
   return m;
 }
 
-geometry_msgs::PoseArray HotsprayUtils::convertToPoseArrayMsg(const std_msgs::Float64MultiArray& response_array){
-
-    int number_of_poses = response_array.data.size() / 12;
-    geometry_msgs::PoseArray pose_array;
-
-    int idx = 0;
-    for(int i = 0; i < number_of_poses; i++){
-        geometry_msgs::Pose pose;
-        Eigen::Isometry3d eigen_pose;
-        Eigen::Vector3d p, vx, vy, vz;
-        idx = i * 12;
-
-        p.data()[0] = response_array.data[idx+0];
-        p.data()[1] = response_array.data[idx+1];
-        p.data()[2] = response_array.data[idx+2];
-
-        vx.data()[0] = response_array.data[idx+3];
-        vx.data()[1] = response_array.data[idx+4];
-        vx.data()[2] = response_array.data[idx+5];
-
-        vy.data()[0] = response_array.data[idx+6];
-        vy.data()[1] = response_array.data[idx+7];
-        vy.data()[2] = response_array.data[idx+8];
-
-        vz.data()[0] = response_array.data[idx+9];
-        vz.data()[1] = response_array.data[idx+10];
-        vz.data()[2] = response_array.data[idx+11];
-
-        eigen_pose = Eigen::Translation3d(p) * Eigen::AngleAxisd(computeRotation(vx, vy, vz));
-        tf::poseEigenToMsg(eigen_pose, pose);
-        pose_array.poses.push_back(pose);
-    }
-    return pose_array;
-}
-
-
-std::vector<Eigen::Isometry3d> HotsprayUtils::convertToEigenPoseArray(const std_msgs::Float64MultiArray& response_array){
-    std::vector<Eigen::Isometry3d> eigen_pose_array;
-    int number_of_poses = response_array.data.size() / 12;
-    geometry_msgs::PoseArray pose_array_;
-
-    int idx = 0;
-    for(int i = 0; i < number_of_poses; i++){
-        geometry_msgs::Pose pose;
-        Eigen::Isometry3d eigen_pose;
-        Eigen::Vector3d p, vx, vy, vz;
-        idx = i * 12;
-
-        p.data()[0] = response_array.data[idx+0];
-        p.data()[1] = response_array.data[idx+1];
-        p.data()[2] = response_array.data[idx+2];
-
-        vx.data()[0] = response_array.data[idx+3];
-        vx.data()[1] = response_array.data[idx+4];
-        vx.data()[2] = response_array.data[idx+5];
-
-        vy.data()[0] = response_array.data[idx+6];
-        vy.data()[1] = response_array.data[idx+7];
-        vy.data()[2] = response_array.data[idx+8];
-
-        vz.data()[0] = response_array.data[idx+9];
-        vz.data()[1] = response_array.data[idx+10];
-        vz.data()[2] = response_array.data[idx+11];
-
-        eigen_pose = Eigen::Translation3d(p) * Eigen::AngleAxisd(computeRotation(vx, vy, vz));
-        eigen_pose_array.push_back(eigen_pose);
-    }
-    return eigen_pose_array;
-}

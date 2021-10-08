@@ -14,9 +14,15 @@ find_package(catkin REQUIRED
         tesseract_monitoring
         tesseract_rosutils
         tesseract_planning_server
-        tesseract_kinematics
+        # tesseract_kinematics
         pcl_conversions
         hotspray_utils
+
+        descartes_core
+        descartes_moveit
+        descartes_trajectory
+        descartes_planner
+        trajectory_msgs        
 )
 
 ## System dependencies are found with CMake's conventions

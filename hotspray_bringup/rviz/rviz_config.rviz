@@ -11,6 +11,7 @@ Panels:
         - /TesseractTrajectory1
         - /MarkerArray2
         - /Marker2
+        - /MarkerArray3
       Splitter Ratio: 0.5
     Tree Height: 618
   - Class: rviz/Selection
@@ -159,6 +160,11 @@ Visualization Manager:
             Show Trail: false
             Value: true
           hotspray_extruder:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          hotspray_extruder_hose_collission:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -331,6 +337,11 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
+          hotspray_extruder_hose_collission:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
           hotspray_tool_link:
             Alpha: 1
             Show Axes: false
@@ -453,6 +464,8 @@ Visualization Manager:
           Value: false
         hotspray_extruder:
           Value: false
+        hotspray_extruder_hose_collission:
+          Value: true
         hotspray_tool_link:
           Value: false
         hotspray_workcell_center:
@@ -517,6 +530,8 @@ Visualization Manager:
                                 {}
                             hotspray_extruder:
                               {}
+                            hotspray_extruder_hose_collission:
+                              {}
           hotspray_workcell_center:
             {}
           tsdf_origin:
@@ -536,7 +551,7 @@ Visualization Manager:
       Marker Topic: /scan_poses
       Name: MarkerArray
       Namespaces:
-        scan_poses: true
+        {}
       Queue Size: 100
       Value: true
     - Class: tesseract_rviz/TesseractTrajectory
@@ -656,9 +671,18 @@ Visualization Manager:
             ACM:
               camera_link: Adjacent
               ee_link: Never
+              hotspray_extruder_hose_collission: Never
               hotspray_workcell_center: Default
               wrist_2_link: Never
               wrist_3_link: Adjacent
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        hotspray_extruder_hose_collission:
+          Alpha: 1
+          Collision:
+            ACM:
+              hotspray_extruder: Never
           Show Axes: false
           Show Trail: false
           Value: true
@@ -775,6 +799,22 @@ Visualization Manager:
         {}
       Queue Size: 100
       Value: true
+    - Class: rviz/MarkerArray
+      Enabled: true
+      Marker Topic: visualization_marker_array
+      Name: MarkerArray
+      Namespaces:
+        {}
+      Queue Size: 100
+      Value: true
+    - Class: rviz/MarkerArray
+      Enabled: true
+      Marker Topic: /hotspray_motion/toolpath_marker
+      Name: MarkerArray
+      Namespaces:
+        {}
+      Queue Size: 100
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -803,7 +843,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 1.169668197631836
+      Distance: 1.310028314590454
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -811,17 +851,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 0.37708425521850586
-        Y: 0.16452790796756744
-        Z: 0.8806201219558716
+        X: 0.08302951604127884
+        Y: 0.30712270736694336
+        Z: 0.5478254556655884
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.5147968530654907
+      Pitch: 0.259797066450119
       Target Frame: <Fixed Frame>
-      Yaw: 5.601780891418457
+      Yaw: 3.986778497695923
     Saved: ~
 Window Geometry:
   Displays:
@@ -846,4 +886,4 @@ Window Geometry:
     collapsed: false
   Width: 2356
   X: 1280
-  Y: 45
+  Y: 27

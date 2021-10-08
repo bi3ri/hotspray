@@ -63,13 +63,13 @@ bool generateMesh();
 
 bool generateToolpath(std::vector<geometry_msgs::PoseArray>& pose_arrays);
 
-bool generateTubularToolpath(std::vector<Eigen::Isometry3d>& eigen_pose_array);
+// bool generateTubularToolpath(std::vector<Eigen::Isometry3d>& eigen_pose_array);
 
-bool generateTubularToolpath(std::vector<geometry_msgs::PoseArray>& pose_array);
+bool generateTubularToolpath(std::vector<geometry_msgs::PoseArray>& raster_array);
 
-bool generateScanTrajectory(std::vector<geometry_msgs::PoseArray>& pose_arrays, trajectory_msgs::JointTrajectory& trajectory);
+bool generateScanTrajectory(geometry_msgs::PoseArray pose_arrays, trajectory_msgs::JointTrajectory& trajectory);
 
-bool generateSprayTrajectory(std::vector<geometry_msgs::PoseArray>& pose_arrays, trajectory_msgs::JointTrajectory& trajectory);
+bool generateSprayTrajectory(std::vector<geometry_msgs::PoseArray> pose_arrays, trajectory_msgs::JointTrajectory& trajectory);
 
 bool executeTrajectory(trajectory_msgs::JointTrajectory& trajectory);
 

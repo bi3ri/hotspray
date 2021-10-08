@@ -11,9 +11,10 @@
     <!-- offset from robot center to workcell center -->
     <xacro:property name="offset" value="0.325"/>
     <xacro:property name="wall_width" value="0.05"/>
+    
     <xacro:macro name="hotspray_workcell" params="parent *origin">
-    <link name="hotspray_workcell_center">
 
+    <link name="hotspray_workcell_center">
     <!-- bottom -->
         <visual>
           <origin rpy="0 0 0" xyz="${offset} ${offset} ${table_height/2}"/>
@@ -30,51 +31,59 @@
           </geometry>
         </collision>
 
-    <inertial>
-      <mass value="10.0" />
-      <inertia  ixx="1.0" ixy="0.0"  ixz="0.0"  iyy="1.0"  iyz="0.0"  izz="1.0" />
-    </inertial>
+        <inertial>
+          <mass value="10.0" />
+          <inertia  ixx="1.0" ixy="0.0"  ixz="0.0"  iyy="1.0"  iyz="0.0"  izz="1.0" />
+        </inertial>
 
     <!-- top -->
-        <!-- <collision>
+        <collision>
           <origin rpy="0 0 0" xyz="${offset} ${offset} ${table_height + workspace_height + wall_width/2}"/>
           <geometry>
              <box size="${workspace_width} ${workspace_width} ${wall_width}"/>
           </geometry>
-        </collision> -->
+        </collision>
 
     <!-- front -->
-        <!-- <collision>
+        <collision>
           <origin rpy="0 0 0" xyz="${offset} ${offset - workspace_width/2 - wall_width/2} ${table_height + workspace_height/2}"/>
           <geometry>
              <box size="${workspace_width} ${wall_width} ${workspace_height}"/>
           </geometry>
-        </collision> -->
+        </collision>
 
     <!-- back -->
-        <!-- <collision>
+        <collision>
           <origin rpy="0 0 0" xyz="${offset} ${offset + workspace_width/2 + wall_width/2} ${table_height + workspace_height/2}"/>
           <geometry>
              <box size="${workspace_width} ${wall_width} ${workspace_height}"/>
           </geometry>
-        </collision> -->
+        </collision>
 
     <!-- left -->
-        <!-- <collision>
+        <collision>
           <origin rpy="0 0 0" xyz="${offset - workspace_width/2 - wall_width/2} ${offset} ${table_height + workspace_height/2}"/>
           <geometry>
              <box size="${wall_width} ${workspace_width} ${workspace_height}"/>
           </geometry>
-        </collision> -->
+        </collision>
 
     <!-- right -->
-        <!-- <collision>
+        <collision>
           <origin rpy="0 0 0" xyz="${offset + workspace_width/2 + wall_width/2} ${offset} ${table_height + workspace_height/2}"/>
           <geometry>
              <box size="${wall_width} ${workspace_width} ${workspace_height}"/>
           </geometry>
-        </collision> -->
+        </collision>
 
+    <!-- rotation table collision-->
+        <xacro:property name="rotation_table_height" value="0.1"/>
+        <collision>
+          <origin rpy="0 0 0" xyz="0.35 0.35 ${table_height + rotation_table_height/2}"/>
+          <geometry>
+             <cylinder length="${rotation_table_height}" radius="0.27"/>
+          </geometry>
+        </collision>
     </link>
 
     <joint name="workcell_joint" type="fixed">

@@ -1,21 +1,21 @@
-w<Profile name="TrajoptDefaultCompositeProfile" version="1.0.0">
+<Profile name="TrajoptDefaultCompositeProfile" version="1.0.0">
     <Planner type="1">
         <TrajoptCompositeProfile>
-            <ContactTest type="2"/>
+            <ContactTest type="0"/>
             <CollisionCostConfig>
-                <Enabled>false</Enabled>
+                <Enabled>true</Enabled>
                 <UseWeightedSum>false</UseWeightedSum>
                 <CollisionEvaluator type="0"/>
-                <BufferMargin>0.025000000000000001</BufferMargin>
-                <SafetyMarginBuffer>0.01</SafetyMarginBuffer>
+                <BufferMargin>0.005</BufferMargin>
+                <SafetyMarginBuffer>0.0001</SafetyMarginBuffer>
                 <Coefficient>20</Coefficient>
-            </CollisionCostConfig>3
+            </CollisionCostConfig>
             <CollisionConstraintConfig>
                 <Enabled>true</Enabled>
                 <UseWeightedSum>false</UseWeightedSum>
                 <CollisionEvaluator type="2"/>
-                <SafetyMargin>0.01</SafetyMargin>
-                <SafetyMarginBuffer>0.050000000000000003</SafetyMarginBuffer>
+                <SafetyMargin>0.005</SafetyMargin>
+                <SafetyMarginBuffer>0.0001</SafetyMarginBuffer>
                 <Coefficient>20</Coefficient>
             </CollisionConstraintConfig>
             <SmoothVelocities>
@@ -23,15 +23,15 @@ w<Profile name="TrajoptDefaultCompositeProfile" version="1.0.0">
                 <Coefficients>5</Coefficients>
             </SmoothVelocities>
             <SmoothAccelerations>
-                <Enabled>false</Enabled>
+                <Enabled>true</Enabled>
                 <Coefficients>3</Coefficients>
             </SmoothAccelerations>
             <SmoothJerks>
-                <Enabled>false</Enabled>
-                <Coefficients>5</Coefficients>
+                <Enabled>true</Enabled>
+                <Coefficients>10</Coefficients>
             </SmoothJerks>
             <AvoidSingularity>
-                <Enabled>false</Enabled>
+                <Enabled>true</Enabled>
                 <Coefficient>5</Coefficient>
             </AvoidSingularity>
             <LongestValidSegmentFraction>1.01</LongestValidSegmentFraction>

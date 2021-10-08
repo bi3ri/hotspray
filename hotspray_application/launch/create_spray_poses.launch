@@ -1,0 +1,13 @@
+<launch>
+  <arg name="action_file_name" default="default" />
+  <arg name="ply_name" default="/results_mesh.ply" />
+  <node name="hotspray_application" pkg="hotspray_application" type="hotspray_application_node" output="screen">
+    <param name="action" value="create_spray_poses"/>
+    <param name="action_file_name" value="$(arg action_file_name)"/>
+    <param name="yak_scan_frame" value="/tsdf_origin"/>
+    <param name="ply_name" value="$(arg ply_name)"/>
+  </node>
+</launch>
+
+
+

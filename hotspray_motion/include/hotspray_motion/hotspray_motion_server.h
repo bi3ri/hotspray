@@ -3,6 +3,7 @@
 
 //#include <hotspray_motion/include/hotspray_motion_config.hpp>
 #include "hotspray_msgs/GenerateSprayTrajectory.h"
+#include "hotspray_msgs/GenerateScanTrajectory.h"
 
 
 #include "hotspray_msgs/GenerateSprayTrajectory.h"
@@ -31,6 +32,25 @@
 #include <hotspray_utils/hotspray_utils.h>
 
 
+
+
+// Core ros functionality like ros::init and spin
+#include <ros/ros.h>
+// ROS Trajectory Action server definition
+#include <control_msgs/FollowJointTrajectoryAction.h>
+// Means by which we communicate with above action-server
+#include <actionlib/client/simple_action_client.h>
+
+// Includes the descartes robot model we will be using
+#include <descartes_moveit/moveit_state_adapter.h>
+// Includes the descartes trajectory type we will be using
+#include <descartes_trajectory/axial_symmetric_pt.h>
+#include <descartes_trajectory/cart_trajectory_pt.h>
+// Includes the planner we will be using
+#include <descartes_planner/dense_planner.h>
+
+typedef std::vector<descartes_core::TrajectoryPtPtr> TrajectoryVec;
+typedef TrajectoryVec::const_iterator TrajectoryIter;
 class HotsprayMotionServer
 {
     private:
@@ -52,21 +72,48 @@ class HotsprayMotionServer
         Eigen::VectorXd home_joint_pos_;
         std::vector<std::string> joint_names_;
 
-        std::string trajopt_default_plan_profile_path_;
-        std::string trajopt_default_composite_profile_path_;
-        std::string descartes_plan_profile_path_;
+
 
         bool debug_;
 
     public: 
         HotsprayMotionServer(ros::NodeHandle); //, std::string config_path);
 
-        bool generateScanTrajectory(hotspray_msgs::GenerateSprayTrajectory::Request &req, hotspray_msgs::GenerateSprayTrajectory::Response &res);
+        bool generateScanTrajectory(hotspray_msgs::GenerateScanTrajectory::Request &req, hotspray_msgs::GenerateScanTrajectory::Response &res);
         
         bool generateSprayTrajectory(hotspray_msgs::GenerateSprayTrajectory::Request &req, hotspray_msgs::GenerateSprayTrajectory::Response &res);
 
-        void createProgramm(tesseract_planning::CompositeInstruction& program, const std::vector<geometry_msgs::PoseArray, std::allocator<geometry_msgs::PoseArray>> & _pose_arrys);
+        void createScanProgram(tesseract_planning::CompositeInstruction& program, const geometry_msgs::PoseArray & _pose_arrys);
+
+        void createSprayProgram(tesseract_planning::CompositeInstruction& program, const std::vector<geometry_msgs::PoseArray, std::allocator<geometry_msgs::PoseArray>> & _pose_arrys);
 
         void toMsg(trajectory_msgs::JointTrajectory& traj_msg, const tesseract_common::JointTrajectory& traj);
 
+tesseract_common::VectorIsometry3d sampleToolAxis(const Eigen::Isometry3d& tool_pose,
+                                                  double z_freedom,
+                                                  double rx_freedom,
+                                                  double ry_freedom,
+                                                  double rz_freedom,
+                                                  double z_resolution,
+                                                  double rx_resolution,
+                                                  double ry_resolution,
+                                                  double rz_resolution,
+                                                  std::vector<Eigen::Isometry3d>& eigen_samples
+                                                  );
+
+descartes_core::TrajectoryPtPtr makeTolerancedCartesianPose(const geometry_msgs::Pose& pose);
+
+
+
+descartes_core::TrajectoryPtPtr makeTolerancedCartesianPoint(const Eigen::Isometry3d& pose);
+
+trajectory_msgs::JointTrajectory createDescartesTrajectory(geometry_msgs::PoseArray& pose_array);
+
+bool executeTrajectory(const trajectory_msgs::JointTrajectory& trajectory);
+
+
+trajectory_msgs::JointTrajectory toROSJointTrajectory(const TrajectoryVec& trajectory,
+                     const descartes_core::RobotModel& model,
+                     const std::vector<std::string>& joint_names,
+                     double time_delay);
 };

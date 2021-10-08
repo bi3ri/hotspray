@@ -1,0 +1,43 @@
+<?xml version="1.0" ?>
+
+<robot name="coil" xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <material name="orange">
+    <color rgba="0.976 0.384 0.023 1"/>
+  </material>
+
+  <xacro:macro name="coil" params="parent *origin spray_distance:=${'0.1'}">
+
+    <link name="coil_link">
+      <inertial>
+        <origin xyz="0 0 0" />
+        <mass value="0.0" />
+        <inertia  ixx="0.0" ixy="0.0"  ixz="0.0"  iyy="0.0"  iyz="0.0"  izz="0.0" />
+      </inertial>
+      <visual>
+        <origin xyz="-0.03 0.00 0.02" rpy="1.5708 0 0.0"/>
+          <geometry>
+              <mesh filename="package://hotspray_description/meshes/coil.stl" scale="0.001 0.001 0.001" />
+          </geometry>
+          <material name="orange"/>
+      </visual>
+      <collision>
+        <origin xyz="-0.03 0.00 0.02" rpy="1.5708 0 0.0"/>
+          <geometry>
+              <mesh filename="package://hotspray_description/meshes/coil.stl" scale="0.001 0.001 0.001" />
+          </geometry>
+      </collision>
+    </link>
+
+    <joint name="world_to_coil" type="fixed">
+      <parent link="${parent}"/>
+      <child link="coil_link"/>
+      <xacro:insert_block name="origin"/>
+    </joint>
+
+    <gazebo reference="coil_link">
+      <material>Gazebo/Orange</material>
+    </gazebo>
+
+  </xacro:macro>
+
+</robot>

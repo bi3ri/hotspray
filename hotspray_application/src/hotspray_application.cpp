@@ -15,6 +15,9 @@
 #include <visualization_msgs/MarkerArray.h>
 
 #include <Eigen/StdVector>
+#include <Eigen/Core>
+#include <Eigen/Geometry>
+
 
 #include "ur_msgs/SetIO.h"
 #include "ur_msgs/SetPayload.h"
@@ -33,10 +36,14 @@
 #include <yak_ros_msgs/GenerateMesh.h>
 #include <tubular_toolpath_creator/GenerateTubularToolpath.h>
 
+
+
 #include <hotspray_msgs/ExecuteScanTrajectoryAction.h>
 #include <hotspray_msgs/GenerateToolpath.h>
 #include <hotspray_msgs/ExecuteScanTrajectoryAction.h>
 #include <hotspray_msgs/GenerateSprayTrajectory.h>
+#include <hotspray_msgs/GenerateScanTrajectory.h>
+
 
 #include <hotspray_utils/hotspray_utils.h>
 
@@ -96,7 +103,7 @@ void HotsprayApplication::createScanPoses(geometry_msgs::PoseArray& scan_pose_ar
         tfToPose(tf, pose);
         if(scan_pose_array.poses.size() > 0)
         {
-            if(HotsprayUtils::euclideanDistance(pose, scan_pose_array.poses.back()) < 0.01)
+            if(HotsprayUtils::isSamePose(pose, scan_pose_array.poses.back(), 0.0001f))
             {
                 std::cout << "The following pose was NOT added to the trajectory! Distance to old pose to small!\n" << std::endl;
                 continue;
@@ -109,7 +116,7 @@ void HotsprayApplication::createScanPoses(geometry_msgs::PoseArray& scan_pose_ar
 
 bool HotsprayApplication::generateMesh(){
     yak_ros_msgs::GenerateMesh mesh_srv;
-    mesh_srv.request.results_dir =  package_path_ + std::string("/meshs");// + ply_name_;
+    mesh_srv.request.results_dir =  package_path_ + std::string("/data/meshs");// + ply_name_;
     mesh_srv.request.results_frame = yak_scan_frame_;
 
     if(mesh_client_.call(mesh_srv))
@@ -124,57 +131,39 @@ bool HotsprayApplication::generateMesh(){
     }
 }
 
-// bool HotsprayApplication::generateToolpath(std::vector<geometry_msgs::PoseArray>& pose_arrays){
-//     hotspray_msgs::GenerateToolpath toolpath_srv;
-//     toolpath_srv.request.mesh_path = package_path_ + std::string("/meshs") + ply_name_;
 
-//     if(toolpath_client_.call(toolpath_srv))
-//     {
-//         std::vector<noether_msgs::ToolPaths> raster_paths = toolpath_srv.response.tool_paths;
-//         noetherMsgtoPoseArrayMsg(raster_paths, pose_arrays);
-//         ROS_INFO("Call to generate toolpath was successfull!");
-//         return 0;
-//     }
-//     else
-//     {
-//         ROS_ERROR("Failed to call service generate toolpath!");
-//         return -1;
-//     }
-
-//     this->noetherMsgtoPoseArrayMsg(toolpath_srv.response.tool_paths, pose_arrays);
-
-//     return 1;
-// }
-
-bool HotsprayApplication::generateTubularToolpath(std::vector<Eigen::Isometry3d>& eigen_pose_array){
+bool HotsprayApplication::generateTubularToolpath(std::vector<geometry_msgs::PoseArray>& pose_arrays){
     tubular_toolpath_creator::GenerateTubularToolpath tubular_toolpath_srv;
-    tubular_toolpath_srv.request.mesh_path = package_path_ + std::string("/meshs") + ply_name_; //TODO YAK name file
+    tubular_toolpath_srv.request.mesh_path = package_path_ + std::string("/data/meshs") + ply_name_; //TODO YAK name file
 
-    if(tubular_toolpath_client_.call(tubular_toolpath_srv))
-    {
-        // std::vector<geometry_msgs::PoseArray> 
-        eigen_pose_array = HotsprayUtils::convertToEigenPoseArray(tubular_toolpath_srv.response.toolpath_vector_array);
-        // noetherMsgtoPoseArrayMsg(raster_paths, pose_arrays);
-        ROS_INFO("Call to generate tubular toolpath was successfull!");
-        return 0;
-    }
-    else
-    {
-        ROS_ERROR("Failed to call service generate toolpath");
-        return 1;
-    }
-    return 1;
-}
-
-bool HotsprayApplication::generateTubularToolpath(std::vector<geometry_msgs::PoseArray>& pose_array){
-    tubular_toolpath_creator::GenerateTubularToolpath tubular_toolpath_srv;
-    tubular_toolpath_srv.request.mesh_path = package_path_ + std::string("/meshs") + ply_name_; //TODO YAK name file
+    tf::TransformListener tf_listener;
+    tf::StampedTransform tf;
 
     if(tubular_toolpath_client_.call(tubular_toolpath_srv))
     {
         // std::vector<geometry_msgs::PoseArray> 
         // eigen_pose_array = HotsprayUtils::convertToEigenPoseArray(tubular_toolpath_srv.response.toolpath_vector_array);
-        pose_array = tubular_toolpath_srv.response.toolpath_raster;
+        pose_arrays = tubular_toolpath_srv.response.raster_array;
+
+        try{
+            tf_listener.lookupTransform("/world", yak_scan_frame_, ros::Time(0), tf);
+        }
+        catch (tf::TransformException &ex) { 
+            ROS_ERROR("Looking up Transfrom world to camera_orbit_frame failed!");
+        }
+
+        geometry_msgs::Pose transform_pose;
+        tfToPose(tf, transform_pose);
+        
+        for(auto& pose_array : pose_arrays){
+            for(auto& pose : pose_array.poses){
+                Eigen::Isometry3d eigen_pose;
+                tf::poseMsgToEigen(pose, eigen_pose);
+                eigen_pose = eigen_pose * Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitY());
+                eigen_pose.pretranslate(Eigen::Vector3d(transform_pose.position.x, transform_pose.position.y, transform_pose.position.z));
+                tf::poseEigenToMsg(eigen_pose, pose);
+            }
+        }
         ROS_INFO("Call to generate tubular toolpath was successfull!");
         return 0;
     }
@@ -187,13 +176,11 @@ bool HotsprayApplication::generateTubularToolpath(std::vector<geometry_msgs::Pos
     return 1;
 }
 
-bool HotsprayApplication::generateScanTrajectory(std::vector<geometry_msgs::PoseArray>& pose_arrays, trajectory_msgs::JointTrajectory& trajectory){
-    hotspray_msgs::GenerateSprayTrajectory trajectory_srv;
+bool HotsprayApplication::generateScanTrajectory(geometry_msgs::PoseArray pose_array, trajectory_msgs::JointTrajectory& trajectory){
+    hotspray_msgs::GenerateScanTrajectory trajectory_srv;
 
-    for(geometry_msgs::PoseArray pose_array : pose_arrays){
-        pose_array.header.frame_id = "world";
-        trajectory_srv.request.poses.push_back(pose_array);
-    }
+    pose_array.header.frame_id = "world";
+    trajectory_srv.request.pose_array = pose_array;
 
     if(scan_trajectory_client_.call(trajectory_srv))
     {
@@ -208,12 +195,12 @@ bool HotsprayApplication::generateScanTrajectory(std::vector<geometry_msgs::Pose
     }
 }
 
-bool HotsprayApplication::generateSprayTrajectory(std::vector<geometry_msgs::PoseArray>& pose_arrays, trajectory_msgs::JointTrajectory& trajectory){
+bool HotsprayApplication::generateSprayTrajectory(std::vector<geometry_msgs::PoseArray> pose_arrays, trajectory_msgs::JointTrajectory& trajectory){
     hotspray_msgs::GenerateSprayTrajectory trajectory_srv;
 
-    for(geometry_msgs::PoseArray pose_array : pose_arrays){
+    for(auto& pose_array : pose_arrays){
         pose_array.header.frame_id = "world";
-        trajectory_srv.request.poses.push_back(pose_array);
+        trajectory_srv.request.raster_array.push_back(pose_array);
     }
 
     if(spray_trajectory_client_.call(trajectory_srv))
@@ -265,7 +252,6 @@ bool HotsprayApplication::startSpray(){
     // set_io.request.FUN_SET_DIGITAL_OUT = 1; //state
     // set_io.request.FUN_SET_ANALOG_OUT = 3;
 
-
     if(spray_client_.call(set_io))
     {
         ROS_INFO("Call to service UR driver start spray was successful");
@@ -316,11 +302,9 @@ bool HotsprayApplication::run()
     trajectory_msgs::JointTrajectory spray_trajectory;
 
     geometry_msgs::PoseArray scan_pose_array;
-    std::vector<geometry_msgs::PoseArray> scan_pose_arrays;
-    geometry_msgs::PoseArray spray_pose_array;
-    std::vector<geometry_msgs::PoseArray> spray_pose_arrays;
+    std::vector<geometry_msgs::PoseArray> spray_raster_array;
     std::string scan_json_pose_array_path = package_path_ + "/data/scan/" + action_file_name_ + ".poses.json";
-    std::string spray_json_pose_array_path = package_path_ + "/data/spray/" + action_file_name_ + ".poses.json";
+    std::string spray_json_raster_array_path = package_path_ + "/data/spray/" + action_file_name_ + ".poses.json";
     std::string scan_bag_trajectory_path = package_path_ + "/data/scan/" + action_file_name_ + ".trajectory.bag";
     std::string spray_bag_trajectory_path = package_path_ + "/data/spray/" + action_file_name_ + ".trajectory.bag";
 
@@ -343,32 +327,22 @@ bool HotsprayApplication::run()
         std::vector<geometry_msgs::PoseArray> scan_pose_arrays = {scan_pose_array};
         scan_markers = HotsprayUtils::convertToAxisMarkers(scan_pose_arrays, "world", "scan_poses");
         scan_pose_publisher_.publish(scan_markers);
-        generateScanTrajectory(scan_pose_arrays, scan_trajectory);
+        generateScanTrajectory(scan_pose_array, scan_trajectory);
         HotsprayUtils::saveTrajectoryMsgToBagFile(scan_trajectory, spray_bag_trajectory_path);
 
         executeTrajectory(scan_trajectory);
 
         generateMesh();
 
-        std::vector<Eigen::Isometry3d> eigen_spray_pose_array;
-        generateTubularToolpath(eigen_spray_pose_array);
+        generateTubularToolpath(spray_raster_array);
 
-        for(auto& pose : eigen_spray_pose_array){
+        nlohmann::json spray_json_raster_array = HotsprayUtils::convertToJson(spray_raster_array);
+        HotsprayUtils::saveJson(spray_json_raster_array_path, spray_json_raster_array);
 
-            pose = pose * Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitY());
-            pose.pretranslate(Eigen::Vector3d(0.2, 0.2, 0.55));
-        }
-
-        nlohmann::json spray_json_pose_array = HotsprayUtils::convertToJson(eigen_spray_pose_array);
-        HotsprayUtils::saveJson(spray_json_pose_array_path, spray_json_pose_array);
-
-        auto spray_markers = HotsprayUtils::convertToAxisMarkers(eigen_spray_pose_array, "world", "spray_poses");
+        auto spray_markers = HotsprayUtils::convertToAxisMarkers(spray_raster_array, "world", "spray_poses");
         scan_pose_publisher_.publish(spray_markers);
 
-        geometry_msgs::PoseArray spray_pose_array = HotsprayUtils::convertToPoseArrayMsg(eigen_spray_pose_array);
-        std::vector<geometry_msgs::PoseArray> spray_pose_arrays = {spray_pose_array};
-
-        generateSprayTrajectory(spray_pose_arrays, spray_trajectory);
+        generateSprayTrajectory(spray_raster_array, spray_trajectory);
         HotsprayUtils::saveTrajectoryMsgToBagFile(scan_trajectory, spray_bag_trajectory_path);
 
         executeTrajectory(spray_trajectory);
@@ -389,57 +363,54 @@ bool HotsprayApplication::run()
 
         generateMesh();
 
-        std::vector<Eigen::Isometry3d> eigen_spray_pose_array;
-        generateTubularToolpath(eigen_spray_pose_array);
+        generateTubularToolpath(spray_raster_array);
 
-        tf::TransformListener tf_listener;
-        tf::StampedTransform tf;
-        tf_listener.lookupTransform("/world", yak_scan_frame_, ros::Time(0), tf);
-        geometry_msgs::Pose transform_pose;
-        tfToPose(tf, transform_pose);
+        nlohmann::json spray_json_raster_array = HotsprayUtils::convertToJson(spray_raster_array);
+        HotsprayUtils::saveJson(spray_json_raster_array_path, spray_json_raster_array);
 
-        for(auto& pose : eigen_spray_pose_array){
-            pose = pose * Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitY());
-            pose.pretranslate(Eigen::Vector3d(transform_pose.position.x, transform_pose.position.y, transform_pose.position.z));
-        }
-
-        std::string spray_json_pose_array_path = package_path_ + "/poses/spray/" + "spray_tmp" + ".poses.json";
-        nlohmann::json spray_json_pose_array = HotsprayUtils::convertToJson(eigen_spray_pose_array);
-        HotsprayUtils::saveJson(spray_json_pose_array_path, spray_json_pose_array);
-
-        auto spray_markers = HotsprayUtils::convertToAxisMarkers(eigen_spray_pose_array, "world", "spray_poses");
+        auto spray_markers = HotsprayUtils::convertToAxisMarkers(spray_raster_array, "world", "spray_poses");
         scan_pose_publisher_.publish(spray_markers);
 
-        geometry_msgs::PoseArray spray_pose_array = HotsprayUtils::convertToPoseArrayMsg(eigen_spray_pose_array);
-        std::vector<geometry_msgs::PoseArray> spray_pose_arrays = {spray_pose_array};
-
-        generateSprayTrajectory(spray_pose_arrays, spray_trajectory);
+        generateSprayTrajectory(spray_raster_array, spray_trajectory);
         HotsprayUtils::saveTrajectoryMsgToBagFile(scan_trajectory, spray_bag_trajectory_path);
 
         executeTrajectory(spray_trajectory);
         return 0;
-
-    }else if(action_ == "load_spray_poses")
+    }else if(action_ == "create_spray_poses")
     {
-        HotsprayUtils::loadPoseArrayMsgFromJsonFile(spray_pose_array, spray_json_pose_array_path);
+        std::vector<geometry_msgs::PoseArray> spray_raster_array;
+        generateTubularToolpath(spray_raster_array);
+        
+        nlohmann::json spray_json_raster_array = HotsprayUtils::convertToJson(spray_raster_array);
+        HotsprayUtils::saveJson(spray_json_raster_array_path, spray_json_raster_array);
 
-        std::vector<geometry_msgs::PoseArray> spray_pose_arrays = {scan_pose_array};
-        visualization_msgs::MarkerArray spray_markers;
-        spray_markers = HotsprayUtils::convertToAxisMarkers(spray_pose_arrays, "world", "spray_poses");
+        auto spray_markers = HotsprayUtils::convertToAxisMarkers(spray_raster_array, "world", "spray_poses");
         scan_pose_publisher_.publish(spray_markers);
 
-        generateSprayTrajectory(spray_pose_arrays, spray_trajectory);
+        generateSprayTrajectory(spray_raster_array, spray_trajectory);
+        HotsprayUtils::saveTrajectoryMsgToBagFile(spray_trajectory, spray_bag_trajectory_path);
+
+        executeTrajectory(spray_trajectory);
+        return 0;
+    }else if(action_ == "load_spray_poses")
+    {
+        HotsprayUtils::loadPoseArrayMsgFromJsonFile(spray_raster_array, spray_json_raster_array_path);
+
+        visualization_msgs::MarkerArray spray_markers;
+        spray_markers = HotsprayUtils::convertToAxisMarkers(spray_raster_array, "world", "scan_poses");
+        scan_pose_publisher_.publish(spray_markers);
+
+        generateSprayTrajectory(spray_raster_array, spray_trajectory);
 
         executeTrajectory(spray_trajectory);
         return 0;
     }else if(action_ == "load_spray_trajectory")
     {
-        HotsprayUtils::loadPoseArrayMsgFromJsonFile(spray_pose_array, spray_json_pose_array_path);
+        HotsprayUtils::loadPoseArrayMsgFromJsonFile(spray_raster_array, spray_json_raster_array_path);
         HotsprayUtils::loadTrajectoryMsgFromBagFile(spray_trajectory, spray_bag_trajectory_path);
 
-        std::vector<geometry_msgs::PoseArray> spray_pose_arrays = {spray_pose_array};
         visualization_msgs::MarkerArray spray_markers;
-        spray_markers = HotsprayUtils::convertToAxisMarkers(spray_pose_arrays, "world", "spray_poses");
+        spray_markers = HotsprayUtils::convertToAxisMarkers(spray_raster_array, "world", "spray_poses");
         scan_pose_publisher_.publish(spray_markers);
 
         executeTrajectory(spray_trajectory);

@@ -21,9 +21,13 @@ namespace HotsprayUtils{
 
 float euclideanDistance(const geometry_msgs::Pose& pose1,const geometry_msgs::Pose& pose2);
 
+bool isSamePose(const geometry_msgs::Pose& pose1, const geometry_msgs::Pose& pose2, const float epsilon);
+
 bool savePoseArrayMsgToJsonFile(geometry_msgs::PoseArray& pose_array, const std::string file_path);
 
 bool loadPoseArrayMsgFromJsonFile(geometry_msgs::PoseArray& pose_array, const std::string& file_path);
+
+bool loadPoseArrayMsgFromJsonFile(std::vector<geometry_msgs::PoseArray>& pose_arrays, const std::string& file_path);
 
 bool saveTrajectoryMsgToBagFile(const trajectory_msgs::JointTrajectory& trajectory, const std::string name);
 
@@ -57,19 +61,19 @@ visualization_msgs::MarkerArray convertToAxisMarkers(const std::vector<geometry_
 
 nlohmann::json convertToJson(geometry_msgs::PoseArray& pose_array);
 
+nlohmann::json convertToJson(std::vector<geometry_msgs::PoseArray>& pose_arrays);
+
 nlohmann::json convertToJson(std::vector<Eigen::Isometry3d> eigen_pose_aray);
 
-std::vector<Eigen::Isometry3d> convertToEigenPoseArray(geometry_msgs::PoseArray& pose_array);
+std::vector<Eigen::Isometry3d> convertToEigenPoseArray(const geometry_msgs::PoseArray& pose_array);
 
 std::vector<Eigen::Isometry3d> convertToEigenPoseArray(nlohmann::json& json_pose_array);
 
-std::vector<Eigen::Isometry3d> convertToEigenPoseArray(const std_msgs::Float64MultiArray& response_array);
-
 geometry_msgs::PoseArray convertToPoseArrayMsg(nlohmann::json& json_pose_array);
 
-geometry_msgs::PoseArray convertToPoseArrayMsg(const std::vector<Eigen::Isometry3d>& eigen_pose_array);
+std::vector<geometry_msgs::PoseArray> convertToVectorPoseArrayMsg(nlohmann::json& json_pose_arrays);
 
-geometry_msgs::PoseArray convertToPoseArrayMsg(const std_msgs::Float64MultiArray& response_array);
+geometry_msgs::PoseArray convertToPoseArrayMsg(const std::vector<Eigen::Isometry3d>& eigen_pose_array);
 
 void loadJson(std::string path, nlohmann::json& json_pose_array);
 

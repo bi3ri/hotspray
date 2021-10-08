@@ -44,6 +44,7 @@ add_service_files(
  FILES
     GenerateToolpath.srv
     GenerateSprayTrajectory.srv
+    GenerateScanTrajectory.srv
 )
 generate_messages(
   DEPENDENCIES

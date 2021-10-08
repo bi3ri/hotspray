@@ -1,5 +1,5 @@
 #request
-geometry_msgs/PoseArray[] raster_array 
+geometry_msgs/PoseArray pose_array
 ---
 #response
 bool success

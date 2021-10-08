@@ -1,0 +1,41 @@
+<Profile name="TrajoptDefaultCompositeProfile" version="1.0.0">
+    <Planner type="1">
+        <TrajoptCompositeProfile>
+            <ContactTest type="0"/>
+            <CollisionCostConfig>
+                <Enabled>true</Enabled>
+                <UseWeightedSum>false</UseWeightedSum>
+                <CollisionEvaluator type="0"/>
+                <BufferMargin>0.025000000000000001</BufferMargin>
+                <SafetyMarginBuffer>0.01</SafetyMarginBuffer>
+                <Coefficient>20</Coefficient>
+            </CollisionCostConfig>
+            <CollisionConstraintConfig>
+                <Enabled>false</Enabled>
+                <UseWeightedSum>false</UseWeightedSum>
+                <CollisionEvaluator type="2"/>
+                <SafetyMargin>0.1</SafetyMargin>
+                <SafetyMarginBuffer>0.050000000000000003</SafetyMarginBuffer>
+                <Coefficient>20</Coefficient>
+            </CollisionConstraintConfig>
+            <SmoothVelocities>
+                <Enabled>true</Enabled>
+                <Coefficients>5</Coefficients>
+            </SmoothVelocities>
+            <SmoothAccelerations>
+                <Enabled>true</Enabled>
+                <Coefficients>3</Coefficients>
+            </SmoothAccelerations>
+            <SmoothJerks>
+                <Enabled>true</Enabled>
+                <Coefficients>5</Coefficients>
+            </SmoothJerks>
+            <AvoidSingularity>
+                <Enabled>false</Enabled>
+                <Coefficient>5</Coefficient>
+            </AvoidSingularity>
+            <LongestValidSegmentFraction>0.01</LongestValidSegmentFraction>
+            <LongestValidSegmentLength>0.10000000000000001</LongestValidSegmentLength>
+        </TrajoptCompositeProfile>
+    </Planner>
+</Profile>

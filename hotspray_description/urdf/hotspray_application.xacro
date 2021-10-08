@@ -10,36 +10,27 @@
   <xacro:include filename="$(find hotspray_description)/urdf/hotspray_workcell.xacro"/>
   <xacro:include filename="$(find ur_description)/urdf/ur5.urdf.xacro" />
 
+  <xacro:include filename="$(find ur_description)/urdf/ur5.urdf.xacro" />
+
+
   <xacro:property name="deg_to_rad" value="0.01745329251994329577" />
 
     <!-- robot -->
     <xacro:if value="${sim}">
         <xacro:include filename="$(find ur_description)/urdf/common.gazebo.xacro" />
     </xacro:if>
-
     <xacro:if value="${joint_limited}">
-      <xacro:ur5_robot prefix="${prefix}" joint_limited="true"
-        shoulder_pan_lower_limit="${-pi}" shoulder_pan_upper_limit="${pi}"
-        shoulder_lift_lower_limit="${-pi}" shoulder_lift_upper_limit="${pi}"
-        elbow_joint_lower_limit="${-pi}" elbow_joint_upper_limit="${pi}"
-        wrist_1_lower_limit="${-pi}" wrist_1_upper_limit="${pi}"
-        wrist_2_lower_limit="${-pi}" wrist_2_upper_limit="${pi}"
-        wrist_3_lower_limit="${-pi}" wrist_3_upper_limit="${pi}"
-        transmission_hw_interface="$(arg transmission_hw_interface)" 
-      />
-    </xacro:if>
-    <xacro:unless value="${joint_limited}">
       <xacro:ur5_robot prefix="${prefix}" joint_limited="true"
         shoulder_pan_lower_limit="0.0" shoulder_pan_upper_limit="3.12414"
         shoulder_lift_lower_limit="-2.26893" shoulder_lift_upper_limit="-0.523599"
-        elbow_joint_lower_limit="${-2*pi}" elbow_joint_upper_limit="${2*pi}"
+        elbow_joint_lower_limit="-0.523599" elbow_joint_upper_limit="2.79253"
         wrist_1_lower_limit="-4.01426" wrist_1_upper_limit="0.785398"
         wrist_2_lower_limit="-4.01426" wrist_2_upper_limit="0.785398"
         wrist_3_lower_limit="${-2*pi}" wrist_3_upper_limit="${2*pi}"
         transmission_hw_interface="$(arg transmission_hw_interface)" 
       />
-    </xacro:unless>
-    <!-- <xacro:unless value="${joint_limited}">
+    </xacro:if>
+    <xacro:unless value="${joint_limited}">
       <xacro:ur5_robot prefix="${prefix}" joint_limited="true"
         shoulder_pan_lower_limit="${-2*pi}" shoulder_pan_upper_limit="${2*pi}"
         shoulder_lift_lower_limit="${-2*pi}" shoulder_lift_upper_limit="${2*pi}"
@@ -49,13 +40,13 @@
         wrist_3_lower_limit="${-2*pi}" wrist_3_upper_limit="${2*pi}"
         transmission_hw_interface="$(arg transmission_hw_interface)" 
       />
-    </xacro:unless> -->
+    </xacro:unless>
 
   <!-- link world-robot -->
     <link name="world"/>
       <joint name="world_to_robot" type="fixed">
-      <parent link="world"/>
-      <child link="base_link"/>
+        <parent link="world"/>
+        <child link="base_link"/>
       <origin  xyz="0 0 0.501" rpy="0 0 ${7 * pi/4}" />
     </joint>
 
@@ -67,9 +58,9 @@
   <!-- scan area -->
     <link name="tsdf_origin"/>
       <joint name="world_to_tsdf" type="fixed">
-      <parent link="world"/>
-      <child link="tsdf_origin"/>
-      <origin  xyz="0.2 0.2 0.55" rpy="0 0 0" />
+        <parent link="world"/>
+        <child link="tsdf_origin"/>
+      <origin  xyz="0.25 0.25 0.55" rpy="0 0 0" />
     </joint>
   
   <!-- tool -->
@@ -77,4 +68,14 @@
       <origin  xyz="0 0 0.0" rpy="0 0 0" />
     </xacro:hotspray_tool>
 
+  <!-- coil -->
+    <xacro:if value="${sim}">
+    <xacro:include filename="$(find hotspray_description)/urdf/coil_fixed.xacro"/>
+      <xacro:coil parent="base_link">
+        <origin  xyz="0.0 0.6 0.1" rpy="0 0 0.0" />
+      </xacro:coil>
+    </xacro:if>
+
 </robot>
+
+
