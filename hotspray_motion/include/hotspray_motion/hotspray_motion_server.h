@@ -83,9 +83,9 @@ class HotsprayMotionServer
         
         bool generateSprayTrajectory(hotspray_msgs::GenerateSprayTrajectory::Request &req, hotspray_msgs::GenerateSprayTrajectory::Response &res);
 
-        void createScanProgram(tesseract_planning::CompositeInstruction& program, const geometry_msgs::PoseArray & _pose_arrys);
+        tesseract_planning::CompositeInstruction createScanProgram(const geometry_msgs::PoseArray & _pose_arrys, const tesseract_planning::ManipulatorInfo& manipulator);
 
-        void createSprayProgram(tesseract_planning::CompositeInstruction& program, const std::vector<geometry_msgs::PoseArray, std::allocator<geometry_msgs::PoseArray>> & _pose_arrys);
+        tesseract_planning::CompositeInstruction createSprayProgram(const std::vector<geometry_msgs::PoseArray, std::allocator<geometry_msgs::PoseArray>> & _pose_arrys,const tesseract_planning::ManipulatorInfo& manipulator);
 
         void toMsg(trajectory_msgs::JointTrajectory& traj_msg, const tesseract_common::JointTrajectory& traj);
 

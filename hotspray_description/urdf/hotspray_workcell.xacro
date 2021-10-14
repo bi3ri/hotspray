@@ -37,44 +37,44 @@
         </inertial>
 
     <!-- top -->
-        <collision>
+        <!-- <collision>
           <origin rpy="0 0 0" xyz="${offset} ${offset} ${table_height + workspace_height + wall_width/2}"/>
           <geometry>
              <box size="${workspace_width} ${workspace_width} ${wall_width}"/>
           </geometry>
-        </collision>
+        </collision> -->
 
     <!-- front -->
-        <collision>
+        <!-- <collision>
           <origin rpy="0 0 0" xyz="${offset} ${offset - workspace_width/2 - wall_width/2} ${table_height + workspace_height/2}"/>
           <geometry>
              <box size="${workspace_width} ${wall_width} ${workspace_height}"/>
           </geometry>
-        </collision>
+        </collision> -->
 
     <!-- back -->
-        <collision>
+        <!-- <collision>
           <origin rpy="0 0 0" xyz="${offset} ${offset + workspace_width/2 + wall_width/2} ${table_height + workspace_height/2}"/>
           <geometry>
              <box size="${workspace_width} ${wall_width} ${workspace_height}"/>
           </geometry>
-        </collision>
+        </collision> -->
 
     <!-- left -->
-        <collision>
+        <!-- <collision>
           <origin rpy="0 0 0" xyz="${offset - workspace_width/2 - wall_width/2} ${offset} ${table_height + workspace_height/2}"/>
           <geometry>
              <box size="${wall_width} ${workspace_width} ${workspace_height}"/>
           </geometry>
-        </collision>
+        </collision> -->
 
     <!-- right -->
-        <collision>
+        <!-- <collision>
           <origin rpy="0 0 0" xyz="${offset + workspace_width/2 + wall_width/2} ${offset} ${table_height + workspace_height/2}"/>
           <geometry>
              <box size="${wall_width} ${workspace_width} ${workspace_height}"/>
           </geometry>
-        </collision>
+        </collision> -->
 
     <!-- rotation table collision-->
         <xacro:property name="rotation_table_height" value="0.1"/>

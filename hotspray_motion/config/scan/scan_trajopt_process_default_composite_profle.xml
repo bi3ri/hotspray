@@ -6,36 +6,36 @@
                 <Enabled>true</Enabled>
                 <UseWeightedSum>false</UseWeightedSum>
                 <CollisionEvaluator type="0"/>
-                <BufferMargin>0.025000000000000001</BufferMargin>
+                <BufferMargin>0.025</BufferMargin>
                 <SafetyMarginBuffer>0.01</SafetyMarginBuffer>
                 <Coefficient>20</Coefficient>
             </CollisionCostConfig>
             <CollisionConstraintConfig>
-                <Enabled>false</Enabled>
+                <Enabled>true</Enabled>
                 <UseWeightedSum>false</UseWeightedSum>
                 <CollisionEvaluator type="2"/>
-                <SafetyMargin>0.1</SafetyMargin>
-                <SafetyMarginBuffer>0.050000000000000003</SafetyMarginBuffer>
-                <Coefficient>20</Coefficient>
+                <SafetyMargin>0.001</SafetyMargin>
+                <SafetyMarginBuffer>0.005</SafetyMarginBuffer>
+                <Coefficient>10</Coefficient>
             </CollisionConstraintConfig>
             <SmoothVelocities>
                 <Enabled>true</Enabled>
-                <Coefficients>5</Coefficients>
+                <Coefficients>1</Coefficients>
             </SmoothVelocities>
             <SmoothAccelerations>
-                <Enabled>true</Enabled>
-                <Coefficients>3</Coefficients>
+                <Enabled>false</Enabled>
+                <Coefficients>1</Coefficients>
             </SmoothAccelerations>
             <SmoothJerks>
                 <Enabled>true</Enabled>
-                <Coefficients>5</Coefficients>
+                <Coefficients>1</Coefficients>
             </SmoothJerks>
             <AvoidSingularity>
                 <Enabled>false</Enabled>
-                <Coefficient>5</Coefficient>
+                <Coefficient>3</Coefficient>
             </AvoidSingularity>
             <LongestValidSegmentFraction>0.01</LongestValidSegmentFraction>
-            <LongestValidSegmentLength>0.10000000000000001</LongestValidSegmentLength>
+            <LongestValidSegmentLength>0.01</LongestValidSegmentLength>
         </TrajoptCompositeProfile>
     </Planner>
 </Profile>

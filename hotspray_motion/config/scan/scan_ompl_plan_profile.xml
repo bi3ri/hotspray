@@ -1,0 +1,23 @@
+<Profile name="OMPLDefaultProfile" version="1.0.0">
+    <Planner type="2">
+        <OMPLPlanProfile>
+            <Planners>
+                <Planner type="7">
+                    <RRTConnect>
+                        <Range>0.01</Range>
+                    </RRTConnect>
+                </Planner>
+                <Planner type="7">
+                    <RRTConnect>
+                        <Range>0.01</Range>
+                    </RRTConnect>
+                </Planner>
+            </Planners>
+            <StateSpace type="0"/>
+            <PlanningTime>20</PlanningTime>
+            <MaxSolutions>10</MaxSolutions>
+            <Simplify>false</Simplify>
+            <Optimize>true</Optimize>
+        </OMPLPlanProfile>
+    </Planner>
+</Profile>

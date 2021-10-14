@@ -16,14 +16,14 @@
       <visual>
         <origin xyz="-0.03 0.00 0.02" rpy="1.5708 0 0.0"/>
           <geometry>
-              <mesh filename="package://hotspray_description/meshes/coil.stl" scale="0.001 0.001 0.001" />
+              <mesh filename="package://hotspray_description/meshes/coil.stl" scale="0.0008 0.0008 0.0008" />
           </geometry>
           <material name="orange"/>
       </visual>
       <collision>
         <origin xyz="-0.03 0.00 0.02" rpy="1.5708 0 0.0"/>
           <geometry>
-              <mesh filename="package://hotspray_description/meshes/coil.stl" scale="0.001 0.001 0.001" />
+              <mesh filename="package://hotspray_description/meshes/coil.stl" scale="0.0008 0.0008 0.0008" />
           </geometry>
       </collision>
     </link>

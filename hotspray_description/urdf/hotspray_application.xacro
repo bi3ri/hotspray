@@ -2,7 +2,7 @@
 
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="hotspray_description">
   <xacro:property name="sim" default="true"/>
-  <xacro:property name="joint_limited" default="false"/>
+  <xacro:property name="joint_limited" default="true"/>
   <xacro:property name="prefix" value=""/>
   <xacro:arg name="transmission_hw_interface" default="hardware_interface/PositionJointInterface" />
 
@@ -72,7 +72,7 @@
     <xacro:if value="${sim}">
     <xacro:include filename="$(find hotspray_description)/urdf/coil_fixed.xacro"/>
       <xacro:coil parent="base_link">
-        <origin  xyz="0.0 0.6 0.1" rpy="0 0 0.0" />
+        <origin  xyz="0.0 0.65 0.1" rpy="0 0 0.0" />
       </xacro:coil>
     </xacro:if>
 

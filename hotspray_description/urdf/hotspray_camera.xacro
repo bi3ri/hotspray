@@ -28,7 +28,7 @@
       <joint name="camera_orbit_joint" type="fixed">
         <parent link="camera_link"/>
       <child link="camera_orbit_frame"/>
-        <origin xyz="0.25 0.0 0.0" rpy="${-pi/4} ${-pi/2} 0"/>
+        <origin xyz="0.20 0.0 0.0" rpy="${-pi/4} ${-pi/2} 0"/>
     </joint>
 
   </xacro:macro>

@@ -3,15 +3,24 @@
 
 
 void sendDebugMsg(HotsprayMotionServer& motion_server, std::string debug_poses_path){
-    hotspray_msgs::GenerateSprayTrajectory::Request req;
-    hotspray_msgs::GenerateSprayTrajectory::Response res;
+    // hotspray_msgs::GenerateSprayTrajectory::Request req;
+    // hotspray_msgs::GenerateSprayTrajectory::Response res;
 
-    std::vector<geometry_msgs::PoseArray> pose_arrays;
-    HotsprayUtils::loadPoseArrayMsgFromJsonFile(pose_arrays, debug_poses_path);
+    // std::vector<geometry_msgs::PoseArray> pose_arrays;
+    // HotsprayUtils::loadPoseArrayMsgFromJsonFile(pose_arrays, debug_poses_path);
 
-    req.raster_array = pose_arrays;
-    motion_server.generateSprayTrajectory(req, res);
-    // motion_server.generateScanTrajectory(req, res);
+    // req.raster_array = pose_arrays;
+    // motion_server.generateSprayTrajectory(req, res);
+
+
+    hotspray_msgs::GenerateScanTrajectory::Request req;
+    hotspray_msgs::GenerateScanTrajectory::Response res;
+
+    geometry_msgs::PoseArray pose_array;
+    HotsprayUtils::loadPoseArrayMsgFromJsonFile(pose_array, debug_poses_path);
+
+    req.pose_array = pose_array;
+    motion_server.generateScanTrajectory(req, res);
 
 
     // motion_server.createDescartesTrajectory(pose_array);
@@ -28,7 +37,7 @@ int main(int argc, char** argv)
     std::string debug_poses_path;
     nh.getParam("hotspray_motion/debug", debug);
     nh.getParam("hotspray_motion/debug_poses_path", debug_poses_path);
-    if (true){
+    if (debug){
         sendDebugMsg(motion_server, debug_poses_path);
         return 0;
     }

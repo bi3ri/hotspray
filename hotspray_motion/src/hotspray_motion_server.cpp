@@ -53,6 +53,8 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 #include <tesseract_motion_planners/descartes/descartes_utils.h>
 #include <tesseract_motion_planners/descartes/problem_generators/default_problem_generator.h>
 #include <tesseract_motion_planners/descartes/profile/descartes_default_plan_profile.h>
+#include <tesseract_motion_planners/descartes/profile/descartes_profile.h>
+
 #include <tesseract_motion_planners/descartes/deserialize.h>
 #include <tesseract_motion_planners/descartes/serialize.h>
 #include <tesseract_process_managers/taskflow_generators/descartes_taskflow.h>
@@ -60,19 +62,38 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 #include <tesseract_process_managers/taskflow_generators/cartesian_taskflow.h>
 
 
+#include <tesseract_time_parameterization/iterative_spline_parameterization.h>
+#include <tesseract_process_managers/task_generators/iterative_spline_parameterization_task_generator.h>
+#include <tesseract_process_managers/task_generators/time_optimal_trajectory_generation_task_generator.h>
 
 #include <tesseract_motion_planners/ompl/problem_generators/default_problem_generator.h>
 #include <tesseract_motion_planners/ompl/profile/ompl_default_plan_profile.h>
 #include <tesseract_motion_planners/ompl/ompl_motion_planner.h>
+#include <tesseract_motion_planners/ompl/serialize.h>
+#include <tesseract_motion_planners/ompl/deserialize.h>
+
+#include <tesseract_motion_planners/simple/simple_motion_planner.h>
+#include <tesseract_motion_planners/simple/profile/simple_planner_fixed_size_assign_plan_profile.h>
 
 #include <tinyxml2.h>
 
 #include <tesseract_kinematics/ur/ur_inv_kin.h>
 #include <tesseract_kinematics/kdl/kdl_fwd_kin_chain.h>
 
+
+#include <tesseract_motion_planners/simple/profile/simple_planner_profile.h>
+#include <tesseract_motion_planners/simple/profile/simple_planner_utils.h>
+
 const std::string ROBOT_DESCRIPTION_PARAM = "robot_description";
 const std::string ROBOT_SEMANTIC_PARAM = "robot_description_semantic";
 const std::string EXAMPLE_MONITOR_NAMESPACE = "tesseract_ros_examples";
+
+const std::string PROCESS_PROFILE = "PROCESS";
+// const std::string FREESPACE_PROFILE = tesseract_planning::DEFAULT_PROFILE_KEY;
+const std::string FREESPACE_PROFILE = "FREESPACE";
+
+using namespace tesseract_planning;
+
 
 HotsprayMotionServer::HotsprayMotionServer(ros::NodeHandle nh) : //, std::string config_path) :
     nh_(nh),
@@ -106,90 +127,7 @@ HotsprayMotionServer::HotsprayMotionServer(ros::NodeHandle nh) : //, std::string
     // home_joint_pos_(6) = 0.1856;
 }
 
-using namespace tesseract_planning;
 
-
-void HotsprayMotionServer::createScanProgram(tesseract_planning::CompositeInstruction& program, 
-                                          const geometry_msgs::PoseArray& pose_array)
-
-                                          
-{
-
-    tesseract_planning::Waypoint home_wp = tesseract_planning::JointWaypoint(joint_names_, home_joint_pos_);
-
-    tesseract_planning::PlanInstruction start_instruction(home_wp, tesseract_planning::PlanInstructionType::START, "TRANSITION");
-    
-    program.setStartInstruction(start_instruction);
-
-    // Plan freespace from start
-
-    std::vector<Eigen::Isometry3d> eigen_pose_array;
-
-
-    for(const auto& pose : pose_array.poses){
-      // std::cout << "adding pose to programm \n" << pose << std::endl;
-      Eigen::Isometry3d eigen_pose;
-      tf::poseMsgToEigen(pose, eigen_pose);
-      eigen_pose_array.push_back(eigen_pose);
-      
-      tesseract_planning::CartesianWaypoint cw;
-      cw.waypoint = eigen_pose;
-
-      tesseract_planning::Waypoint wp = cw;
-
-      // tesseract_planning::PlanInstruction plan(wp, tesseract_planning::PlanInstructionType::LINEAR, "CARTESIAN");
-      tesseract_planning::PlanInstruction plan(wp, tesseract_planning::PlanInstructionType::LINEAR, "RASTER");
-
-      program.push_back(plan);
-    }
-    
-    tesseract_planning::Waypoint home_wp2 = tesseract_planning::JointWaypoint(joint_names_, home_joint_pos_);
-
-    tesseract_planning::PlanInstruction plan_end(home_wp, tesseract_planning::PlanInstructionType::FREESPACE, "RASTER");
-    program.push_back(plan_end);
-}
-
-void HotsprayMotionServer::createSprayProgram(tesseract_planning::CompositeInstruction& program, 
-                                          const std::vector<geometry_msgs::PoseArray, 
-                                          std::allocator<geometry_msgs::PoseArray>>& raster_array)
-{
-
-  tesseract_planning::Waypoint home_wp = tesseract_planning::JointWaypoint(joint_names_, home_joint_pos_);
-
-  tesseract_planning::PlanInstruction start_instruction(home_wp, tesseract_planning::PlanInstructionType::START, "TRANSITION");
-  
-  program.setStartInstruction(start_instruction);
-
-  for(const auto& raster : raster_array)
-    {
-      Eigen::Isometry3d eigen_pose;
-      tf::poseMsgToEigen(raster.poses[0], eigen_pose);
-      
-      tesseract_planning::CartesianWaypoint cw(eigen_pose);
-      tesseract_planning::Waypoint wp(cw);
-      tesseract_planning::PlanInstruction plan(wp, tesseract_planning::PlanInstructionType::FREESPACE, "TRANSITION");
-
-      program.push_back(plan);
-
-      for(unsigned long int i = 1; i < raster.poses.size(); i++)
-      {
-        Eigen::Isometry3d eigen_pose;
-        tf::poseMsgToEigen(raster.poses[i], eigen_pose);
-        
-        tesseract_planning::CartesianWaypoint cw(eigen_pose);
-        tesseract_planning::Waypoint wp(cw);
-        tesseract_planning::PlanInstruction plan(wp, tesseract_planning::PlanInstructionType::LINEAR, "RASTER");
-
-        program.push_back(plan);
-      }
-
-    }
-    tesseract_planning::Waypoint home_wp2 = tesseract_planning::JointWaypoint(joint_names_, home_joint_pos_);
-
-
-    tesseract_planning::PlanInstruction plan_end(home_wp, tesseract_planning::PlanInstructionType::FREESPACE, "RASTER");
-    program.push_back(plan_end);
-}
 
 void HotsprayMotionServer::toMsg(trajectory_msgs::JointTrajectory& traj_msg, const tesseract_common::JointTrajectory& traj)
 {
@@ -273,6 +211,60 @@ tesseract_common::VectorIsometry3d HotsprayMotionServer::sampleToolAxis(const Ei
   return samples;
 }
 
+tesseract_planning::CompositeInstruction HotsprayMotionServer::createScanProgram( 
+                                          const geometry_msgs::PoseArray& pose_array,
+                                          const tesseract_planning::ManipulatorInfo& manipulator
+                                          )
+
+{                                      
+  tesseract_planning::CompositeInstruction program("scan_program", tesseract_planning::CompositeInstructionOrder::ORDERED, manipulator);
+
+  // Start Joint Position for the program
+  tesseract_planning::Waypoint home_wp = tesseract_planning::JointWaypoint(joint_names_, home_joint_pos_);
+  tesseract_planning::PlanInstruction start_instruction(home_wp, tesseract_planning::PlanInstructionType::START);
+  program.setStartInstruction(start_instruction);
+
+  Eigen::Isometry3d eigen_pose;
+  tf::poseMsgToEigen(pose_array.poses[0], eigen_pose);
+  Waypoint first_raster_wp = CartesianWaypoint(eigen_pose);
+    
+  // Define from start composite instruction
+  PlanInstruction transition_from_start(first_raster_wp, PlanInstructionType::FREESPACE, FREESPACE_PROFILE);
+  transition_from_start.setDescription("from_start_plan");
+  CompositeInstruction from_start(FREESPACE_PROFILE);
+  from_start.setDescription("from_start");
+  from_start.push_back(transition_from_start);
+  program.push_back(from_start);
+  // program.push_back(transition_from_start);
+
+
+  // Create raster segement
+  CompositeInstruction raster_segment(PROCESS_PROFILE);
+  raster_segment.setDescription("Raster #");
+  for(unsigned long int i = 1; i < pose_array.poses.size(); i++)
+  {
+    Eigen::Isometry3d eigen_pose;
+    tf::poseMsgToEigen(pose_array.poses[i], eigen_pose);
+    
+    Waypoint raster_waypoint = CartesianWaypoint(eigen_pose);
+    raster_segment.push_back(tesseract_planning::PlanInstruction(raster_waypoint, tesseract_planning::PlanInstructionType::LINEAR, PROCESS_PROFILE));
+    std::cout << i << std::endl;
+  }
+  program.push_back(raster_segment);
+
+  PlanInstruction plan_f1(home_wp, PlanInstructionType::FREESPACE, FREESPACE_PROFILE);
+  plan_f1.setDescription("transition_from_end_plan");
+
+  CompositeInstruction transition(FREESPACE_PROFILE);
+  transition.setDescription("transition_from_end");
+  transition.push_back(plan_f1);
+  program.push_back(transition);
+  // program.push_back(plan_f1);
+
+  return program;
+  }
+
+
 bool HotsprayMotionServer::generateScanTrajectory(hotspray_msgs::GenerateScanTrajectory::Request &req,
 hotspray_msgs::GenerateScanTrajectory::Response &res)
 {
@@ -321,10 +313,6 @@ hotspray_msgs::GenerateScanTrajectory::Response &res)
   mi.working_frame = "world";
   mi.manipulator_ik_solver = "URInvKin";
 
-  // Create Program
-  CompositeInstruction program("RASTER", CompositeInstructionOrder::ORDERED, mi);
-  createScanProgram(program, req.pose_array);
-
   auto fwd_env_solver = env_->getManipulatorManager()->getFwdKinematicSolver("manipulator");
 
   auto inv_kin = std::make_shared<tesseract_kinematics::URInvKin>();
@@ -341,25 +329,29 @@ hotspray_msgs::GenerateScanTrajectory::Response &res)
   env_->getManipulatorManager()->addInvKinematicSolver(inv_kin);
   env_->getManipulatorManager()->setDefaultInvKinematicSolver("manipulator", "URInvKin");
 
-  std::string trajopt_default_composite_profile_path;
-  std::string trajopt_default_plan_profile_path;
+  std::string trajopt_process_default_composite_profile_path;
+  std::string trajopt_process_default_plan_profile_path;
+  std::string trajopt_freespace_default_composite_profile_path;
+  std::string trajopt_freespace_default_plan_profile_path;
   std::string descartes_plan_profile_path;
-  ph_.getParam("scan_trajopt_default_composite_profile_path", trajopt_default_composite_profile_path);
-  ph_.getParam("scan_trajopt_default_plan_profile_path", trajopt_default_plan_profile_path);
-  ph_.getParam("scan_descartes_plan_profile_path", descartes_plan_profile_path);
+  std::string ompl_plan_profile_path;
 
-  std::vector<Eigen::Isometry3d> scan_eigen_samples;
-  auto descartes_plan_profile = std::make_shared<tesseract_planning::DescartesDefaultPlanProfileD>(tesseract_planning::descartesPlanFromXMLFile(descartes_plan_profile_path));
-  descartes_plan_profile->use_redundant_joint_solutions = true;
-  
-  double z_freedom;  
-  double rx_freedom; 
-  double ry_freedom; 
-  double rz_freedom; 
-  double z_resolution; 
-  double rz_resolution; 
-  double rx_resolution; 
-  double ry_resolution;
+  ph_.getParam("scan_trajopt_process_default_composite_profile_path", trajopt_process_default_composite_profile_path);
+  ph_.getParam("scan_trajopt_process_default_plan_profile_path", trajopt_process_default_plan_profile_path);
+  ph_.getParam("scan_trajopt_freespace_default_composite_profile_path", trajopt_freespace_default_composite_profile_path);
+  ph_.getParam("scan_trajopt_freespace_default_plan_profile_path", trajopt_freespace_default_plan_profile_path);
+  ph_.getParam("scan_descartes_plan_profile_path", descartes_plan_profile_path);
+  ph_.getParam("scan_ompl_plan_profile_path", ompl_plan_profile_path);
+
+  std::vector<Eigen::Isometry3d> spray_eigen_samples;
+  auto descartes_plan_profile = std::make_shared<tesseract_planning::DescartesDefaultPlanProfileF>();//tesseract_planning::descartesPlanFromXMLFile(descartes_plan_profile_path));
+  descartes_plan_profile->use_redundant_joint_solutions = false;
+  descartes_plan_profile->enable_edge_collision = false;
+  descartes_plan_profile->enable_collision = true;
+  descartes_plan_profile->allow_collision = true;
+  descartes_plan_profile->num_threads = 12;
+
+  double z_freedom, rx_freedom, ry_freedom, rz_freedom, z_resolution, rz_resolution, rx_resolution, ry_resolution;
   ph_.getParam("scan_z_freedom", z_freedom);
   ph_.getParam("scan_rx_freedom", rx_freedom);
   ph_.getParam("scan_ry_freedom", ry_freedom);
@@ -379,91 +371,205 @@ hotspray_msgs::GenerateScanTrajectory::Response &res)
                                                 rx_resolution,
                                                 ry_resolution,
                                                 rz_resolution,
-                                                scan_eigen_samples);
+                                                spray_eigen_samples);
   };
+  // double ompl_range;
+  // double planning_time;
+  // ph_.getParam("ompl_range", ompl_range);
+  // ph_.getParam("planning_time", planning_time);
+  // Create OMPL Profile
+  auto ompl_profile = std::make_shared<tesseract_planning::OMPLDefaultPlanProfile>(tesseract_planning::omplPlanFromXMLFile(ompl_plan_profile_path));
+  // auto ompl_planner_config = std::make_shared<tesseract_planning::RRTConnectConfigurator>();
+  // ompl_planner_config->range = ompl_range;
+  // ompl_profile->planning_time = planning_time;
+  // ompl_profile->planners = { ompl_planner_config, ompl_planner_config };
 
-  auto trajopt_plan_profile = std::make_shared<tesseract_planning::TrajOptDefaultPlanProfile>(tesseract_planning::trajOptPlanFromXMLFile(trajopt_default_plan_profile_path));
-  auto trajopt_composite_profile = std::make_shared<tesseract_planning::TrajOptDefaultCompositeProfile>(tesseract_planning::trajOptCompositeFromXMLFile(trajopt_default_composite_profile_path));
-  auto trajopt_solver_profile = std::make_shared<tesseract_planning::TrajOptDefaultSolverProfile>();
-  trajopt_solver_profile->convex_solver = sco::ModelType::OSQP;
-  // trajopt_solver_profile->convex_solver = sco::ModelType::QPOASES;
-  trajopt_solver_profile->opt_info.max_iter = 200;
-  trajopt_solver_profile->opt_info.min_approx_improve = 1e-3;
-  trajopt_solver_profile->opt_info.min_trust_box_size = 1e-3;
-  trajopt_solver_profile->opt_info.cnt_tolerance= 100000.0;
+  // tesseract_planning::toXMLFile(*ompl_profile, ompl_plan_profile_path);
+
+  auto trajopt_freespace_plan_profile = std::make_shared<tesseract_planning::TrajOptDefaultPlanProfile>(tesseract_planning::trajOptPlanFromXMLFile(trajopt_freespace_default_plan_profile_path));
+  auto trajopt_freespace_composite_profile = std::make_shared<tesseract_planning::TrajOptDefaultCompositeProfile>(tesseract_planning::trajOptCompositeFromXMLFile(trajopt_freespace_default_composite_profile_path));
+  auto trajopt_freespace_solver_profile = std::make_shared<tesseract_planning::TrajOptDefaultSolverProfile>();
+
+  auto trajopt_process_plan_profile = std::make_shared<tesseract_planning::TrajOptDefaultPlanProfile>(tesseract_planning::trajOptPlanFromXMLFile(trajopt_process_default_plan_profile_path));
+  auto trajopt_process_composite_profile = std::make_shared<tesseract_planning::TrajOptDefaultCompositeProfile>(tesseract_planning::trajOptCompositeFromXMLFile(trajopt_process_default_composite_profile_path));
+  auto trajopt_process_solver_profile = std::make_shared<tesseract_planning::TrajOptDefaultSolverProfile>();
+  trajopt_process_solver_profile->convex_solver = sco::ModelType::OSQP;
+  trajopt_process_solver_profile->opt_info.max_iter = 200;
+  trajopt_process_solver_profile->opt_info.min_approx_improve = 1e-3;
+  trajopt_process_solver_profile->opt_info.min_trust_box_size = 1e-3;
+  trajopt_process_solver_profile->opt_info.cnt_tolerance= 10.0;
+
+  trajopt_freespace_solver_profile->convex_solver = sco::ModelType::OSQP;
+  trajopt_freespace_solver_profile->opt_info.max_iter = 200;
+  trajopt_freespace_solver_profile->opt_info.min_approx_improve = 1e-3;
+  trajopt_freespace_solver_profile->opt_info.min_trust_box_size = 1e-3;
+  // trajopt_freespace_solver_profile->opt_info.cnt_tolerance= 9999.0;
+
+  // ompl_plan_profile->optimize = true;
+  // tesseract_planning::toXMLFile(ompl_plan_profile, "/home/bi3ri/hotspray_ws/ompl.xml");
+
+  auto iterative_spline_parameterization_profile = std::make_shared<tesseract_planning::IterativeSplineParameterizationProfile>();
+
+  iterative_spline_parameterization_profile->max_velocity_scaling_factor = 0.5;
+  iterative_spline_parameterization_profile->max_acceleration_scaling_factor = 0.5;
+
+
+
+
+
+
+
+
+
+  // Create Program
+  tesseract_planning::CompositeInstruction program = createScanProgram(req.pose_array, mi);
 
   // Create a seed
   auto cur_state = env_->getCurrentState();
-  CompositeInstruction seed = generateSeed(program, cur_state, env_);
+  // CompositeInstruction seed = generateSeed(program, cur_state, env_);
 
-  // Create Planning Request
-  PlannerRequest request;
-  request.seed = seed;
-  request.instructions = program;
-  request.env = env_;
-  request.env_state = cur_state;
-
-  // Solve Descartes Plan
-  PlannerResponse descartes_response;
-  DescartesMotionPlannerD descartes_planner;
-  descartes_planner.plan_profiles["RASTER"] = descartes_plan_profile;
-  descartes_planner.problem_generator = tesseract_planning::DefaultDescartesProblemGenerator<double>;
-  auto descartes_status = descartes_planner.solve(request, descartes_response);
-
-  auto sample_markers = HotsprayUtils::convertToAxisMarkers(scan_eigen_samples, "world", "scan_poses");
+  auto sample_markers = HotsprayUtils::convertToAxisMarkers(spray_eigen_samples, "world", "spray_poses");
   vis_pub_.publish(sample_markers);
 
-  // Plot Descartes Trajectory
-  if (plotter)
-  {
-    plotter->waitForInput();
-    plotter->plotTrajectory(toJointTrajectory(descartes_response.results), env_->getStateSolver());
-  }
-  assert(descartes_status);
+  // Create Process Planning Server
+  ProcessPlanningServer planning_server(std::make_shared<ROSProcessEnvironmentCache>(monitor_), 12);
+  planning_server.loadDefaultProcessPlanners();
 
-  // // Create Process Planning Server
-  // ProcessPlanningServer planning_server(std::make_shared<ROSProcessEnvironmentCache>(monitor_), 5);
-  // planning_server.loadDefaultProcessPlanners();
+  // Create Process Planning Request
+  ProcessPlanningRequest request;
+  request.name = tesseract_planning::process_planner_names::RASTER_CT_DT_PLANNER_NAME;
+  // request.name = tesseract_planning::process_planner_names::
 
-  // // Create Process Planning Request
-  // ProcessPlanningRequest trajopt_request;
-  // trajopt_request.name = tesseract_planning::process_planner_names::TRAJOPT_PLANNER_NAME;
-  // trajopt_request.instructions = Instruction(program);
+  // request.instructions = Instruction(program);
+  request.instructions = Instruction(program);
+  // request.profile = true;
 
-  // // Update Seed
-  // trajopt_request.seed = descartes_response.results;
-
-  // // Add profile to Dictionary
-  // planning_server.getProfiles()->addProfile<tesseract_planning::TrajOptPlanProfile>("RASTER", trajopt_plan_profile);
-  // planning_server.getProfiles()->addProfile<tesseract_planning::TrajOptCompositeProfile>("RASTER",
-  //                                                                                        trajopt_composite_profile);
-  // planning_server.getProfiles()->addProfile<tesseract_planning::TrajOptSolverProfile>("RASTER",
-  //                                                                                     trajopt_solver_profile);
-
-
-  // // Print Diagnostics
-  // trajopt_request.instructions.print("Program: ");
-
-  // // Solve process plan
-  // ProcessPlanningFuture response = planning_server.run(trajopt_request);
-  // planning_server.waitForAll();
-
-  // // Plot Process Trajectory
-
-  // plotter->waitForInput();
-  // const auto& ci = response.results->as<tesseract_planning::CompositeInstruction>();
-  // tesseract_common::JointTrajectory trajectory = tesseract_planning::toJointTrajectory(ci);
-  // plotter->plotTrajectory(trajectory, env_->getStateSolver());
+  // Add profiles to planning server
+  auto default_simple_plan_profile = std::make_shared<tesseract_planning::SimplePlannerLVSPlanProfile>();
+  ProfileDictionary::Ptr profiles = planning_server.getProfiles();
+  profiles->addProfile<SimplePlannerPlanProfile>(FREESPACE_PROFILE, default_simple_plan_profile);
+  profiles->addProfile<SimplePlannerPlanProfile>(PROCESS_PROFILE, default_simple_plan_profile);
+  profiles->addProfile<SimplePlannerPlanProfile>("scan_programm", default_simple_plan_profile);
+  profiles->addProfile<SimplePlannerPlanProfile>("DEFAULT", default_simple_plan_profile);
   
+  // Add profile to Dictionary
+  profiles->addProfile<tesseract_planning::TrajOptPlanProfile>(FREESPACE_PROFILE, trajopt_freespace_plan_profile);
+  profiles->addProfile<tesseract_planning::TrajOptCompositeProfile>(FREESPACE_PROFILE, trajopt_freespace_composite_profile);
+  // profiles->addProfile<tesseract_planning::TrajOptSolverProfile>(FREESPACE_PROFILE, trajopt_freespace_solver_profile);
+  profiles->addProfile<tesseract_planning::OMPLPlanProfile>(FREESPACE_PROFILE, ompl_profile);
+  profiles->addProfile<tesseract_planning::IterativeSplineParameterizationProfile>("FREESPACE", iterative_spline_parameterization_profile);
 
-  // ROS_INFO("Final trajectory is collision free");
-  // trajectory_msgs::JointTrajectory traj_msg;
-  // toMsg(traj_msg, trajectory);
-  // res.traj = traj_msg;
 
-  // ROS_INFO("Final trajectory is collision free");
+  profiles->addProfile<tesseract_planning::TrajOptPlanProfile>(PROCESS_PROFILE, trajopt_process_plan_profile);
+  profiles->addProfile<tesseract_planning::TrajOptCompositeProfile>(PROCESS_PROFILE, trajopt_process_composite_profile);
+  profiles->addProfile<tesseract_planning::TrajOptSolverProfile>(PROCESS_PROFILE, trajopt_process_solver_profile);
+  profiles->addProfile<tesseract_planning::DescartesPlanProfile<float>>(PROCESS_PROFILE, descartes_plan_profile);
+  profiles->addProfile<tesseract_planning::IterativeSplineParameterizationProfile>(PROCESS_PROFILE, iterative_spline_parameterization_profile);
+
+
+  // profiles->addProfile<tesseract_planning::TrajOptPlanProfile>("scan_program", trajopt_plan_profile);
+  // profiles->addProfile<tesseract_planning::TrajOptCompositeProfile>("scan_program", trajopt_composite_profile);
+  // profiles->addProfile<tesseract_planning::TrajOptSolverProfile>("scan_program", trajopt_solver_profile);
+
+  auto test12 = planning_server.getAvailableProcessPlanners();
+  auto test11232 = planning_server.getProfiles();
+
+  // Print Diagnostics
+  request.instructions.print("Program: ");
+  // request.plan_profile_remapping = true;
+
+  // Solve process plan
+  ProcessPlanningFuture response = planning_server.run(request);
+  planning_server.waitForAll();
+
+  // Plot Process Trajectory
+  plotter->waitForInput();
+  const auto& ci = response.results->as<tesseract_planning::CompositeInstruction>();
+  tesseract_common::JointTrajectory trajectory = tesseract_planning::toJointTrajectory(ci);
+  plotter->plotTrajectory(trajectory, env_->getStateSolver());
+  
+  ROS_INFO("Final trajectory is collision free");
+  trajectory_msgs::JointTrajectory traj_msg;
+  toMsg(traj_msg, trajectory);
+  res.traj = traj_msg;
+
+  ROS_INFO("Final trajectory is collision free");
   return true;
 }
+
+
+
+
+tesseract_planning::CompositeInstruction HotsprayMotionServer::createSprayProgram( 
+                                          const std::vector<geometry_msgs::PoseArray, 
+                                          std::allocator<geometry_msgs::PoseArray>>& raster_array,
+                                          const tesseract_planning::ManipulatorInfo& manipulator
+                                          )
+{
+  tesseract_planning::CompositeInstruction program("spray_programm", tesseract_planning::CompositeInstructionOrder::ORDERED, tesseract_planning::ManipulatorInfo("manipulator"));
+
+
+  // Start Joint Position for the program
+  tesseract_planning::Waypoint home_wp = tesseract_planning::JointWaypoint(joint_names_, home_joint_pos_);
+  tesseract_planning::PlanInstruction start_instruction(home_wp, tesseract_planning::PlanInstructionType::START);
+  program.setStartInstruction(start_instruction);
+
+
+  
+  for(unsigned long int j = 0; j < raster_array.size(); j++)
+  {
+    auto& raster = raster_array[j];
+    Eigen::Isometry3d eigen_pose;
+    tf::poseMsgToEigen(raster.poses[0], eigen_pose);
+    Waypoint first_raster_wp = CartesianWaypoint(eigen_pose);
+    
+    if(j == 0){
+      // Define from start composite instruction
+      PlanInstruction transition_from_start(first_raster_wp, PlanInstructionType::FREESPACE, FREESPACE_PROFILE);
+      transition_from_start.setDescription("from_start_plan");
+      CompositeInstruction from_start(FREESPACE_PROFILE);
+      from_start.setDescription("from_start");
+      from_start.push_back(transition_from_start);
+      program.push_back(from_start);
+
+    }else
+    {
+      PlanInstruction transition_between_raster(first_raster_wp, PlanInstructionType::FREESPACE, FREESPACE_PROFILE);
+      transition_between_raster.setDescription("transition_between_raster_segement");
+      CompositeInstruction transition(FREESPACE_PROFILE);
+      transition.setDescription("transition_between_raster_segement");
+      transition.push_back(transition_between_raster);
+      program.push_back(transition);
+    }
+
+    // Create raster segement
+    CompositeInstruction raster_segment(PROCESS_PROFILE, CompositeInstructionOrder::UNORDERED);
+    raster_segment.setDescription("Raster #" + std::to_string(j + 1));
+    for(unsigned long int i = 1; i < raster.poses.size(); i++)
+    {
+      Eigen::Isometry3d eigen_pose;
+      tf::poseMsgToEigen(raster.poses[i], eigen_pose);
+      
+      Waypoint raster_waypoint = CartesianWaypoint(eigen_pose);
+      raster_segment.push_back(tesseract_planning::PlanInstruction(raster_waypoint, tesseract_planning::PlanInstructionType::LINEAR, PROCESS_PROFILE));
+      std::cout << i << std::endl;
+    }
+    program.push_back(raster_segment);
+    break;
+
+
+  }
+
+  PlanInstruction plan_f1(home_wp, PlanInstructionType::FREESPACE, FREESPACE_PROFILE);
+  plan_f1.setDescription("transition_from_end_plan");
+
+  CompositeInstruction transition(FREESPACE_PROFILE);
+  transition.setDescription("transition_from_end");
+  transition.push_back(plan_f1);
+  program.push_back(transition);
+  return program;
+}
+
 
 bool HotsprayMotionServer::generateSprayTrajectory(hotspray_msgs::GenerateSprayTrajectory::Request &req,
 hotspray_msgs::GenerateSprayTrajectory::Response &res)
@@ -513,9 +619,7 @@ hotspray_msgs::GenerateSprayTrajectory::Response &res)
   mi.working_frame = "world";
   mi.manipulator_ik_solver = "URInvKin";
 
-  // Create Program
-  CompositeInstruction program("RASTER", CompositeInstructionOrder::ORDERED, mi);
-  createSprayProgram(program, req.raster_array);
+
 
   auto fwd_env_solver = env_->getManipulatorManager()->getFwdKinematicSolver("manipulator");
 
@@ -541,8 +645,11 @@ hotspray_msgs::GenerateSprayTrajectory::Response &res)
   ph_.getParam("spray_descartes_plan_profile_path", descartes_plan_profile_path);
 
   std::vector<Eigen::Isometry3d> spray_eigen_samples;
-  auto descartes_plan_profile = std::make_shared<tesseract_planning::DescartesDefaultPlanProfileF>(); //tesseract_planning::descartesPlanFromXMLFile(descartes_plan_profile_path));
+  auto descartes_plan_profile = std::make_shared<tesseract_planning::DescartesDefaultPlanProfileF>();//tesseract_planning::descartesPlanFromXMLFile(descartes_plan_profile_path));
   descartes_plan_profile->use_redundant_joint_solutions = false;
+  descartes_plan_profile->enable_edge_collision = false;
+  descartes_plan_profile->num_threads = 12;
+
   
   double z_freedom, rx_freedom, ry_freedom, rz_freedom, z_resolution, rz_resolution, rx_resolution, ry_resolution;
   ph_.getParam("spray_z_freedom", z_freedom);
@@ -577,65 +684,63 @@ hotspray_msgs::GenerateSprayTrajectory::Response &res)
   trajopt_solver_profile->opt_info.min_trust_box_size = 1e-3;
   trajopt_solver_profile->opt_info.cnt_tolerance= 1000.0;
 
+
+  // Create Program
+  // tesseract_planning::CompositeInstruction program("RASTER", CompositeInstructionOrder::ORDERED, mi);
+  tesseract_planning::CompositeInstruction program = createSprayProgram(req.raster_array, mi);
+
   // Create a seed
   auto cur_state = env_->getCurrentState();
-  CompositeInstruction seed = generateSeed(program, cur_state, env_);
-
-  // Create Planning Request
-  PlannerRequest request;
-  request.seed = seed;
-  request.instructions = program;
-  request.env = env_;
-  request.env_state = cur_state;
-
-  // Solve Descartes Plan
-  // PlannerResponse descartes_response;
-  // DescartesMotionPlannerD descartes_planner;
-  // descartes_planner.plan_profiles["RASTER"] = descartes_plan_profile;
-  // descartes_planner.problem_generator = tesseract_planning::DefaultDescartesProblemGenerator<double>;
-  // auto descartes_status = descartes_planner.solve(request, descartes_response);
+  // CompositeInstruction seed = generateSeed(program, cur_state, env_);
 
   auto sample_markers = HotsprayUtils::convertToAxisMarkers(spray_eigen_samples, "world", "spray_poses");
   vis_pub_.publish(sample_markers);
 
-  // // Plot Descartes Trajectory
-  // if (plotter)
-  // {
-  //   // plotter->waitForInput();
-  //   plotter->plotTrajectory(toJointTrajectory(descartes_response.results), env_->getStateSolver());
-  // }
-  // assert(descartes_status);
-
   // Create Process Planning Server
-  ProcessPlanningServer planning_server(std::make_shared<ROSProcessEnvironmentCache>(monitor_), 5);
+  ProcessPlanningServer planning_server(std::make_shared<ROSProcessEnvironmentCache>(monitor_), 12);
   planning_server.loadDefaultProcessPlanners();
 
   // Create Process Planning Request
-  ProcessPlanningRequest trajopt_request;
-  trajopt_request.name = tesseract_planning::process_planner_names::RASTER_FT_PLANNER_NAME;
-  trajopt_request.instructions = Instruction(program);
+  ProcessPlanningRequest request;
+  request.name = tesseract_planning::process_planner_names::RASTER_FT_PLANNER_NAME;
+  // request.instructions = Instruction(program);
+  request.instructions = Instruction(program);
+  request.profile = true;
 
-  // Update Seed
-  // trajopt_request.seed = descartes_response.results;
+    // Add profiles to planning server
+  auto default_simple_plan_profile = std::make_shared<SimplePlannerFixedSizeAssignPlanProfile>();
+  ProfileDictionary::Ptr profiles = planning_server.getProfiles();
+  profiles->addProfile<SimplePlannerPlanProfile>(FREESPACE_PROFILE, default_simple_plan_profile);
+  profiles->addProfile<SimplePlannerPlanProfile>(PROCESS_PROFILE, default_simple_plan_profile);
 
   // Add profile to Dictionary
-  planning_server.getProfiles()->addProfile<tesseract_planning::TrajOptPlanProfile>("RASTER", trajopt_plan_profile);
+  profiles->addProfile<tesseract_planning::TrajOptPlanProfile>(PROCESS_PROFILE, trajopt_plan_profile);
   // planning_server.getProfiles()->addProfile<tesseract_planning::TrajOptCompositeProfile>("RASTER",
   //                                                                                        trajopt_composite_profile);
   // planning_server.getProfiles()->addProfile<tesseract_planning::TrajOptSolverProfile>("RASTER",
   //                                                                                     trajopt_solver_profile);
-  planning_server.getProfiles()->addProfile<tesseract_planning::DescartesPlanProfile<float>>("RASTER", descartes_plan_profile);
+  // planning_server.getProfiles()->addProfile<tesseract_planning::DescartesPlanProfile<float>>("PROCESS", descartes_plan_profile);
+  // planning_server.getProfiles()->addProfile<tesseract_planning::DescartesPlanProfile<float>>("PROCESS", descartes_plan_profile);
+  profiles->addProfile<tesseract_planning::DescartesPlanProfile<float>>(PROCESS_PROFILE, descartes_plan_profile);
+
+  // planning_server.getProfiles()->addProfile<tesseract_planning::DescartesDefaultPlanProfileF("PROCESS", descartes_plan_profile);
+  // planning_server.getProfiles()->addProfile<tesseract_planning::DescartesDefaultPlanProfileD("PROCESS", descartes_plan_profile);
+  // planning_server.getProfiles()->addProfile<tesseract_planning::DescartesPlanProfileMapF("PROCESS", descartes_plan_profile);
+  // planning_server.getProfiles()->addProfile<tesseract_planning::DescartesPlanProfileMapD("PROCESS", descartes_plan_profile);
+
+
+  auto test12 = planning_server.getAvailableProcessPlanners();
+  auto test11232 = planning_server.getProfiles();
 
 
   // Print Diagnostics
-  trajopt_request.instructions.print("Program: ");
+  request.instructions.print("Program: ");
 
   // Solve process plan
-  ProcessPlanningFuture response = planning_server.run(trajopt_request);
+  ProcessPlanningFuture response = planning_server.run(request);
   planning_server.waitForAll();
 
   // Plot Process Trajectory
-
   plotter->waitForInput();
   const auto& ci = response.results->as<tesseract_planning::CompositeInstruction>();
   tesseract_common::JointTrajectory trajectory = tesseract_planning::toJointTrajectory(ci);
@@ -652,3 +757,4 @@ hotspray_msgs::GenerateSprayTrajectory::Response &res)
 }
 
 
+// }; // namespace tesseract::planning
