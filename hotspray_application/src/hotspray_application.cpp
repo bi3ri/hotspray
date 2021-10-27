@@ -39,7 +39,6 @@
 
 
 #include <hotspray_msgs/ExecuteScanTrajectoryAction.h>
-#include <hotspray_msgs/GenerateToolpath.h>
 #include <hotspray_msgs/ExecuteScanTrajectoryAction.h>
 #include <hotspray_msgs/GenerateSprayTrajectory.h>
 #include <hotspray_msgs/GenerateScanTrajectory.h>
@@ -57,8 +56,7 @@ HotsprayApplication::HotsprayApplication(ros::NodeHandle nh) :
     ph_("~"),
     spray_client_(nh_.serviceClient<ur_msgs::SetIO>("ur_driver/set_io")),
     mesh_client_(nh_.serviceClient<yak_ros_msgs::GenerateMesh>("/tsdf_node/generate_mesh")),
-    toolpath_client_(nh_.serviceClient<hotspray_msgs::GenerateToolpath>("/plane_slicer_example/generate_toolpath")),
-    scan_trajectory_client_(nh_.serviceClient<hotspray_msgs::GenerateSprayTrajectory>("/hotspray_motion/generate_scan_trajectory")),
+    scan_trajectory_client_(nh_.serviceClient<hotspray_msgs::GenerateScanTrajectory>("/hotspray_motion/generate_scan_trajectory")),
     spray_trajectory_client_(nh_.serviceClient<hotspray_msgs::GenerateSprayTrajectory>("/hotspray_motion/generate_spray_trajectory")),
     tubular_toolpath_client_(nh_.serviceClient<tubular_toolpath_creator::GenerateTubularToolpath>("/tubular_toolpath_creator/create_tubular_toolpath")),
     scan_pose_publisher_(nh_.advertise<visualization_msgs::MarkerArray>("scan_poses", 0)),
@@ -75,14 +73,10 @@ HotsprayApplication::HotsprayApplication(ros::NodeHandle nh) :
 void HotsprayApplication::createScanPoses(geometry_msgs::PoseArray& scan_pose_array){
     std::cout << "This will create a new scan trajectory." << std::endl;
 
-    // std::string file_name;
-    // std::getline(std::cin, file_name);
-
     tf::TransformListener tf_listener;
     tf::StampedTransform tf;
 
     while(1){
-
         std::cout << "Do you want to add the current robot position to the trajectory? (Answer: y/n)" << std::endl;
         char ch;
         do
@@ -94,7 +88,7 @@ void HotsprayApplication::createScanPoses(geometry_msgs::PoseArray& scan_pose_ar
             break;
 
         try{
-            tf_listener.lookupTransform("/world", "/camera_orbit_frame", ros::Time(0), tf);
+            tf_listener.lookupTransform("/world", "/tcp_frame", ros::Time(0), tf);
         }
         catch (tf::TransformException &ex) { 
             ROS_ERROR("Looking up Transfrom world to camera_orbit_frame failed!");
@@ -378,7 +372,6 @@ bool HotsprayApplication::run()
         return 0;
     }else if(action_ == "create_spray_poses")
     {
-        std::vector<geometry_msgs::PoseArray> spray_raster_array;
         generateTubularToolpath(spray_raster_array);
         
         nlohmann::json spray_json_raster_array = HotsprayUtils::convertToJson(spray_raster_array);
@@ -416,7 +409,8 @@ bool HotsprayApplication::run()
         executeTrajectory(spray_trajectory);
         return 0;
     }
-
-    return 0;
+    
+        ROS_ERROR("Hotspray action %s is not supported!", action_file_name_.c_str());
+    return -1;
 }
 

@@ -153,8 +153,9 @@ std::vector<geometry_msgs::PoseArray> HotsprayUtils::convertToVectorPoseArrayMsg
   geometry_msgs::PoseArray pose_array;
   std::vector<geometry_msgs::PoseArray> pose_arrays;
 
-  for(int j = 0; j < json_pose_arrays.size(); j++){
-    auto json_pose_array = json_pose_arrays[j];
+for (auto& element : json_pose_arrays) {
+    auto json_pose_array = element;
+    // auto json_pose_array = json_pose_arrays[j];
     for(int i = 0; i < json_pose_array.size(); i++){
       geometry_msgs::Pose pose;
       pose.position.x = json_pose_array[i]["position"]["x"];

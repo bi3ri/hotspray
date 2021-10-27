@@ -9,4 +9,4 @@
 - git: {local-name: tesseract_planning, uri: 'https://github.com/ros-industrial-consortium/tesseract_planning.git', version: master}
 - git: {local-name: tesseract_ros, uri: 'https://github.com/ros-industrial-consortium/tesseract_ros.git', version: master}
 
-- git: {local-name: realsense_gazebo_plugin, uri: 'https://github.com/pal-robotics/realsense_gazebo_plugin.git', version: master}
+- git: {local-name: realsense_gazebo_plugin, uri: 'https://github.com/pal-robotics/realsense_gazebo_plugin.git', version: melodic-devel}

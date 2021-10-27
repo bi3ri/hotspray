@@ -1,13 +1,11 @@
 <?xml version="1.0"?>
 <launch>
   <arg name="debug" default="true" />
-  <!-- <arg name="debug_poses_path" default="/home/bi3ri/hotspray_ws/src/hotspray/hotspray_application/data/spray/easy_upright.poses.json" /> -->
-  <!-- <arg name="debug_poses_path" default="/home/bi3ri/hotspray_ws/src/hotspray/hotspray_application/data/spray/default.poses.json" /> -->
+  <arg name="debug_poses_path" default="/home/bi3ri/hotspray_ws/src/hotspray/hotspray_application/data/spray/default.poses.json" />
   <!-- <arg name="debug_poses_path" default="/home/bi3ri/hotspray_ws/src/hotspray/hotspray_application/data/spray/degree_255.poses.json" /> -->
   <!-- <arg name="debug_poses_path" default="/home/bi3ri/hotspray_ws/src/hotspray/hotspray_application/data/spray/degree_45_to_190.poses.json" /> -->
-  <!-- <arg name="debug_poses_path" default="/home/bi3ri/hotspray_ws/src/hotspray/hotspray_application/data/spray/default.poses.json" /> -->
 
-  <arg name="debug_poses_path" default="/home/bi3ri/hotspray_ws/src/hotspray/hotspray_application/data/scan/scan03.poses.json" />
+  <!-- <arg name="debug_poses_path" default="/home/bi3ri/hotspray_ws/src/hotspray/hotspray_application/data/scan/scan03.poses.json" /> -->
   <!-- <arg name="debug_poses_path" default="/home/bi3ri/hotspray_ws/src/hotspray/hotspray_application/data/scan/default.poses.json" /> -->
 
 
@@ -30,6 +28,13 @@
     <param name="scan_descartes_plan_profile_path" value="$(find hotspray_motion)/config/scan/scan_descartes_plan_profile.xml"/>
     <param name="scan_ompl_plan_profile_path" value="$(find hotspray_motion)/config/scan/scan_ompl_plan_profile.xml"/>
 
+    <param name="spray_trajopt_process_default_plan_profile_path" value="$(find hotspray_motion)/config/spray/spray_trajopt_process_default_plan_profile.xml"/>
+    <param name="spray_trajopt_process_default_composite_profile_path" value="$(find hotspray_motion)/config/spray/spray_trajopt_process_default_composite_profle.xml"/>
+    <param name="spray_trajopt_freespace_default_plan_profile_path" value="$(find hotspray_motion)/config/spray/spray_trajopt_freespace_default_plan_profile.xml"/>
+    <param name="spray_trajopt_freespace_default_composite_profile_path" value="$(find hotspray_motion)/config/spray/spray_trajopt_freespace_default_composite_profle.xml"/>
+    <param name="spray_descartes_plan_profile_path" value="$(find hotspray_motion)/config/spray/spray_descartes_plan_profile.xml"/>
+    <param name="spray_ompl_plan_profile_path" value="$(find hotspray_motion)/config/spray/spray_ompl_plan_profile.xml"/>
+
     <param name="scan_z_freedom" value="0.01"/>
     <param name="scan_rx_freedom" value="10"/>
     <param name="scan_ry_freedom" value="10"/>
@@ -43,10 +48,10 @@
     <param name="spray_trajopt_default_plan_profile_path" value="$(arg spray_trajopt_default_plan_profile_path)"/>
     <param name="spray_descartes_plan_profile_path" value="$(arg spray_descartes_plan_profile_path)"/>
 
-    <param name="spray_z_freedom" value="0.01"/>
-    <param name="spray_rx_freedom" value="45"/>
-    <param name="spray_ry_freedom" value="45"/>
-    <param name="spray_rz_freedom" value="91"/>
+    <param name="spray_z_freedom" value="0.001"/>
+    <param name="spray_rx_freedom" value="20"/>
+    <param name="spray_ry_freedom" value="5"/>
+    <param name="spray_rz_freedom" value="1"/>
     <param name="spray_z_resolution" value="1.0"/>
     <param name="spray_rx_resolution" value="1.0"/>
     <param name="spray_ry_resolution" value="1.0"/>

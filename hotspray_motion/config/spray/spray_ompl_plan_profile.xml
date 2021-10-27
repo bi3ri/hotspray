@@ -4,20 +4,20 @@
             <Planners>
                 <Planner type="7">
                     <RRTConnect>
-                        <Range>0.00001</Range>
+                        <Range>0.01</Range>
                     </RRTConnect>
                 </Planner>
                 <Planner type="7">
                     <RRTConnect>
-                        <Range>0.00001</Range>
+                        <Range>0.01</Range>
                     </RRTConnect>
                 </Planner>
             </Planners>
             <StateSpace type="0"/>
             <PlanningTime>20</PlanningTime>
-            <MaxSolutions>100</MaxSolutions>
+            <MaxSolutions>10</MaxSolutions>
             <Simplify>false</Simplify>
-            <Optimize>false</Optimize>
+            <Optimize>true</Optimize>
         </OMPLPlanProfile>
     </Planner>
 </Profile>

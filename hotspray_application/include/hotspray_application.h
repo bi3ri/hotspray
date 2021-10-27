@@ -23,7 +23,6 @@
 #include <tubular_toolpath_creator/GenerateTubularToolpath.h>
 
 #include <hotspray_msgs/ExecuteScanTrajectoryAction.h>
-#include <hotspray_msgs/GenerateToolpath.h>
 #include <hotspray_msgs/ExecuteScanTrajectoryAction.h>
 #include <hotspray_msgs/GenerateSprayTrajectory.h>
 

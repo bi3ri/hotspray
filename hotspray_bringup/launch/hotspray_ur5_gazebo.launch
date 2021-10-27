@@ -41,7 +41,6 @@
           args="manipulator_joint_trajectory_controller manipulator_joint_state_controller" />
   </group>
   
-
   <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"/>
   -->
   
@@ -50,6 +49,9 @@
   <!-- start this controller -->
   <rosparam file="$(find ur_gazebo)/controller/arm_controller_ur5.yaml" command="load"/>
   <node name="arm_controller_spawner" pkg="controller_manager" type="controller_manager" args="spawn arm_controller" respawn="false" output="screen"/>
+
+  <!-- Remap follow_joint_trajectory -->
+  <remap if="$(arg sim)" from="/follow_joint_trajectory" to="/arm_controller/follow_joint_trajectory"/>
 
   <!-- load other controllers -->
   <node name="ros_control_controller_manager" pkg="controller_manager" type="controller_manager" respawn="false" output="screen" args="load joint_group_position_controller" />

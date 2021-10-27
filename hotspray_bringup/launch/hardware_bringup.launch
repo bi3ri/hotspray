@@ -5,7 +5,7 @@
   <arg name="pipeline" default="command_planner"/>
   <arg name="robot_name" default="ur5"/>
   <arg name="robot_description" value="$(arg robot_name)_description"/>
-  <arg name="urdf_file" default="$(find hotspray_description)/urdf/hotspray_demo.urdf.xacro"/>
+  <arg name="urdf_file" default="$(find hotspray_description)/urdf/hotspray_application.xacro"/>
 
   <!-- Load the URDF, SRDF and other .yaml configuration files on the param server -->
   <param name="robot_description" type="str" command="$(find xacro)/xacro --inorder '$(arg urdf_file)' sim:=$(arg sim_robot)"/>
@@ -41,11 +41,11 @@
   <node name="hotspray_support" pkg="hotspray_support" type="spindle_sim" if="$(arg sim_robot)"/>
 -->
 
-  <!-- camera if not simulated!-
-  <include file="$(find hotspray_support)/launch/setup_camera.launch" unless="$(arg sim_robot)">
-  -->
-    <!--arg name="roi_lower" value="{'x': -0.16, 'y': -0.4, 'z': 0.0}"/>
-    <arg name="roi_upper" value="{'x':  0.16, 'y':  0.4, 'z': 0.6}"/-->
-  </include>
+  <!-- camera if not simulated!-->
+  <!-- <include file="$(find hotspray_support)/launch/setup_camera.launch" unless="$(arg sim_robot)">
+  
+    arg name="roi_lower" value="{'x': -0.16, 'y': -0.4, 'z': 0.0}"/>
+    <arg name="roi_upper" value="{'x':  0.16, 'y':  0.4, 'z': 0.6}"/
+  </include> -->
 
 </launch>

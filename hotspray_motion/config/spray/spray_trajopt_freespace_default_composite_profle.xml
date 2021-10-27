@@ -8,7 +8,7 @@
                 <CollisionEvaluator type="0"/>
                 <BufferMargin>0.025</BufferMargin>
                 <SafetyMarginBuffer>0.01</SafetyMarginBuffer>
-                <Coefficient>20</Coefficient>
+                <Coefficient>40</Coefficient>
             </CollisionCostConfig>
             <CollisionConstraintConfig>
                 <Enabled>false</Enabled>
@@ -27,7 +27,7 @@
                 <Coefficients>3</Coefficients>
             </SmoothAccelerations>
             <SmoothJerks>
-                <Enabled>false</Enabled>
+                <Enabled>false</Enabled>1
                 <Coefficients>5</Coefficients>
             </SmoothJerks>
             <AvoidSingularity>
@@ -35,7 +35,7 @@
                 <Coefficient>5</Coefficient>
             </AvoidSingularity>
             <LongestValidSegmentFraction>0.01</LongestValidSegmentFraction>
-            <LongestValidSegmentLength>0.01</LongestValidSegmentLength>
+            <LongestValidSegmentLength>0.1</LongestValidSegmentLength>
         </TrajoptCompositeProfile>
     </Planner>
 </Profile>

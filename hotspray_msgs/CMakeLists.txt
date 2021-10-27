@@ -10,7 +10,6 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   roscpp
   shape_msgs
-  noether_msgs
   trajectory_msgs
 )
 
@@ -42,7 +41,6 @@ add_action_files(
 #Generate service files in the 'srv' folder
 add_service_files(
  FILES
-    GenerateToolpath.srv
     GenerateSprayTrajectory.srv
     GenerateScanTrajectory.srv
 )
@@ -52,7 +50,6 @@ generate_messages(
     geometry_msgs
     pcl_msgs
     std_msgs
-    noether_msgs
     shape_msgs
     trajectory_msgs
 )
@@ -67,7 +64,6 @@ catkin_package(
     message_runtime
     pcl_msgs
     std_msgs
-    noether_msgs
     shape_msgs
     trajectory_msgs
 )
