@@ -20,10 +20,28 @@
                         <Range>0.0</Range>
                     </LazyPRMstar>
                 </Planner>
-                
+
+                                                <Planner type="12">
+                    <LazyPRMstar>
+                        <Range>0.0</Range>
+                    </LazyPRMstar>
+                </Planner>
+
+                                                <Planner type="12">
+                    <LazyPRMstar>
+                        <Range>0.0</Range>
+                    </LazyPRMstar>
+                </Planner>
+
+                            <!-- <Planner type="7">
+                    <RRTConnect>
+                        <Range>0.0</Range>
+                    </RRTConnect>
+                </Planner> -->
+
             </Planners>
             <StateSpace type="0"/>
-            <PlanningTime>5</PlanningTime>
+            <PlanningTime>10</PlanningTime>
             <MaxSolutions>1</MaxSolutions>
             <Simplify>false</Simplify>
             <Optimize>false</Optimize>

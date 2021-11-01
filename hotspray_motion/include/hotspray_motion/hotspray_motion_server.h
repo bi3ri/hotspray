@@ -1,23 +1,22 @@
+#pragma once
 #include <ros/ros.h>
 
-
-//#include <hotspray_motion/include/hotspray_motion_config.hpp>
 #include "hotspray_msgs/GenerateSprayTrajectory.h"
 #include "hotspray_msgs/GenerateScanTrajectory.h"
-
+#include <hotspray_utils/hotspray_utils.h>
 
 #include "hotspray_msgs/GenerateSprayTrajectory.h"
 #include <visualization_msgs/MarkerArray.h>
-#include "eigen_conversions/eigen_msg.h" //conversion posemsg -> eigen
-
+#include "eigen_conversions/eigen_msg.h" 
 #include <tesseract_common/macros.h>
-//TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <ros/ros.h>
-//TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 //#include <tesseract_ros_examples/freespace_hybrid_example.h>
-#include <tesseract_environment/core/utils.h>
-#include <tesseract_environment/core/commands.h>
+#include <tesseract_environment/environment.h>
+#include <tesseract_monitoring/environment_monitor.h>
+
+#include <tesseract_environment/utils.h>
+#include <tesseract_environment/commands.h>
 #include <tesseract_rosutils/plotting.h>
 #include <tesseract_rosutils/utils.h>
 #include <tesseract_command_language/command_language.h>
@@ -29,28 +28,9 @@
 #include <tesseract_motion_planners/core/utils.h>
 #include <tesseract_visualization/markers/toolpath_marker.h>
 
-#include <hotspray_utils/hotspray_utils.h>
-
-
-
-
 // Core ros functionality like ros::init and spin
-#include <ros/ros.h>
-// ROS Trajectory Action server definition
-#include <control_msgs/FollowJointTrajectoryAction.h>
-// Means by which we communicate with above action-server
-#include <actionlib/client/simple_action_client.h>
+#include <tesseract_rosutils/plotting.h>
 
-// Includes the descartes robot model we will be using
-#include <descartes_moveit/moveit_state_adapter.h>
-// Includes the descartes trajectory type we will be using
-#include <descartes_trajectory/axial_symmetric_pt.h>
-#include <descartes_trajectory/cart_trajectory_pt.h>
-// Includes the planner we will be using
-#include <descartes_planner/dense_planner.h>
-
-typedef std::vector<descartes_core::TrajectoryPtPtr> TrajectoryVec;
-typedef TrajectoryVec::const_iterator TrajectoryIter;
 class HotsprayMotionServer
 {
     private:
@@ -58,21 +38,13 @@ class HotsprayMotionServer
         ros::NodeHandle ph_;
         ros::ServiceServer plan_scan_trajectory_service_;
         ros::ServiceServer plan_spray_trajectory_service_;
-
-
-
         ros::Publisher vis_pub_;
-        //visualization_msgs::MarkerArray toolpath_markers_;
-        tesseract_environment::Environment::Ptr env_;           /**< @brief Tesseract Manager Class */
-        bool rviz_;
-        bool plotting_;
-        tesseract_monitoring::EnvironmentMonitor::Ptr monitor_; /**< @brief Tesseract Monitor */
-        double range_;
-        double planning_time_;
+        tesseract_environment::Environment::Ptr env_;           
+        tesseract_monitoring::EnvironmentMonitor::Ptr monitor_; 
+        tesseract_planning::ManipulatorInfo mi_;
+        tesseract_rosutils::ROSPlottingPtr plotter_;
         Eigen::VectorXd home_joint_pos_;
         std::vector<std::string> joint_names_;
-
-
 
         bool debug_;
 
@@ -89,31 +61,15 @@ class HotsprayMotionServer
 
         void toMsg(trajectory_msgs::JointTrajectory& traj_msg, const tesseract_common::JointTrajectory& traj);
 
-tesseract_common::VectorIsometry3d sampleToolAxis(const Eigen::Isometry3d& tool_pose,
-                                                  double z_freedom,
-                                                  double rx_freedom,
-                                                  double ry_freedom,
-                                                  double rz_freedom,
-                                                  double z_resolution,
-                                                  double rx_resolution,
-                                                  double ry_resolution,
-                                                  double rz_resolution,
-                                                  std::vector<Eigen::Isometry3d>& eigen_samples
-                                                  );
+    tesseract_common::VectorIsometry3d sampleToolAxis(const Eigen::Isometry3d& tool_pose,
+                                                    double z_freedom,
+                                                    double rx_freedom,
+                                                    double ry_freedom,
+                                                    double rz_freedom,
+                                                    double z_resolution,
+                                                    double rx_resolution,
+                                                    double ry_resolution,
+                                                    double rz_resolution
+                                                    );
 
-descartes_core::TrajectoryPtPtr makeTolerancedCartesianPose(const geometry_msgs::Pose& pose);
-
-
-
-descartes_core::TrajectoryPtPtr makeTolerancedCartesianPoint(const Eigen::Isometry3d& pose);
-
-trajectory_msgs::JointTrajectory createDescartesTrajectory(geometry_msgs::PoseArray& pose_array);
-
-bool executeTrajectory(const trajectory_msgs::JointTrajectory& trajectory);
-
-
-trajectory_msgs::JointTrajectory toROSJointTrajectory(const TrajectoryVec& trajectory,
-                     const descartes_core::RobotModel& model,
-                     const std::vector<std::string>& joint_names,
-                     double time_delay);
 };

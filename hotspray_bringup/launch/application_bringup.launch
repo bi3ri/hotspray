@@ -1,6 +1,5 @@
 <?xml version="1.0"?>
 <launch>
-
   <arg name="sim_robot" default="true"/>
   <arg name="paused" default="true"/>
   <arg name="gazebo_gui" default="true"/>
@@ -12,17 +11,16 @@
     <arg name="gazebo_gui" default="$(arg gazebo_gui)"/>
   </include>
 
-  <!-- utils -->
-  <include file="$(find hotspray_bringup)/launch/utils_bringup.launch" >
-    <arg name="sim_robot" default="$(arg sim_robot)"/>
-    <arg name="paused" default="$(arg paused)"/>
-    <arg name="gazebo_gui" default="$(arg gazebo_gui)"/>
+  <!-- yak -->
+  <include file="$(find hotspray_bringup)/launch/hotspray_yak.launch">
   </include>
 
-  <!-- application -->
-  <include file="$(find hotspray_application)/launch/hotspray_application.launch">
+  <!-- toolpath -->
+  <include file="$(find tubular_toolpath_creator)/launch/tubular_toolpath_creator.launch">
   </include>
 
-  <!-- <include file="$(find hotspray_bringup)/launch/rviz.launch"/> -->
+  <!-- motion --> 
+  <include file="$(find hotspray_motion)/launch/hotspray_motion.launch">
+  </include>
 
 </launch>

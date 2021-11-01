@@ -150,12 +150,10 @@ geometry_msgs::PoseArray HotsprayUtils::convertToPoseArrayMsg(nlohmann::json& js
 }
 
 std::vector<geometry_msgs::PoseArray> HotsprayUtils::convertToVectorPoseArrayMsg(nlohmann::json& json_pose_arrays){
-  geometry_msgs::PoseArray pose_array;
   std::vector<geometry_msgs::PoseArray> pose_arrays;
 
-for (auto& element : json_pose_arrays) {
-    auto json_pose_array = element;
-    // auto json_pose_array = json_pose_arrays[j];
+for (auto& json_pose_array : json_pose_arrays) {
+  geometry_msgs::PoseArray pose_array;
     for(int i = 0; i < json_pose_array.size(); i++){
       geometry_msgs::Pose pose;
       pose.position.x = json_pose_array[i]["position"]["x"];
@@ -167,7 +165,7 @@ for (auto& element : json_pose_arrays) {
       pose.orientation.w = json_pose_array[i]["orientation"]["w"];
       pose_array.poses.push_back(pose);
     }
-    pose_arrays.push_back(pose_array);
+  pose_arrays.push_back(pose_array);
   }
   return pose_arrays;
 }

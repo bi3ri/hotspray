@@ -88,7 +88,7 @@ void HotsprayApplication::createScanPoses(geometry_msgs::PoseArray& scan_pose_ar
             break;
 
         try{
-            tf_listener.lookupTransform("/world", "/tcp_frame", ros::Time(0), tf);
+            tf_listener.lookupTransform("/world", "/camera_orbit_frame", ros::Time(0), tf);
         }
         catch (tf::TransformException &ex) { 
             ROS_ERROR("Looking up Transfrom world to camera_orbit_frame failed!");
@@ -167,7 +167,7 @@ bool HotsprayApplication::generateTubularToolpath(std::vector<geometry_msgs::Pos
         return -1;
     }
 
-    return 1;
+    return -1;
 }
 
 bool HotsprayApplication::generateScanTrajectory(geometry_msgs::PoseArray pose_array, trajectory_msgs::JointTrajectory& trajectory){

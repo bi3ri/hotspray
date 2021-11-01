@@ -1,4 +1,4 @@
-<Profile name="TrajoptDefaultCompositeProfile" version="1.0.0">
+<Profile>
     <Planner type="1">
         <TrajoptCompositeProfile>
             <ContactTest type="0"/>

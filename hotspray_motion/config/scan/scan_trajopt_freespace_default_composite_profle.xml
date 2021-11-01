@@ -35,7 +35,7 @@
                 <Coefficient>5</Coefficient>
             </AvoidSingularity>
             <LongestValidSegmentFraction>0.01</LongestValidSegmentFraction>
-            <LongestValidSegmentLength>0.01</LongestValidSegmentLength>
+            <LongestValidSegmentLength>0.1</LongestValidSegmentLength>
         </TrajoptCompositeProfile>
     </Planner>
 </Profile>

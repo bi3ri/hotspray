@@ -16,20 +16,13 @@ find_package(catkin REQUIRED
         tesseract_planning_server
         # tesseract_kinematics
         pcl_conversions
-        hotspray_utils
-
-        descartes_core
-        descartes_moveit
-        descartes_trajectory
-        descartes_planner
-        trajectory_msgs        
+        hotspray_utils   
 )
 
 ## System dependencies are found with CMake's conventions
 find_package(Eigen3 REQUIRED)
 find_package(console_bridge REQUIRED)
 find_package(descartes_light REQUIRED)
-# find_package(descartes_samplers REQUIRED)
 find_package(ompl REQUIRED)
 find_package(tesseract_environment REQUIRED)
 find_package(tesseract_common REQUIRED)
@@ -187,8 +180,8 @@ target_link_libraries(
     ${PROJECT_NAME}_node Eigen3::Eigen  
     ${catkin_INCLUDE_DIRS} 
     ${catkin_LIBRARIES} 
-        tesseract::tesseract_environment_core 
-        tesseract::tesseract_environment_ofkt 
+        # tesseract::tesseract_environment_core 
+        # tesseract::tesseract_environment_ofkt 
         tesseract::tesseract_command_language 
         tesseract::tesseract_support 
         tesseract::tesseract_process_managers 

@@ -11,15 +11,14 @@
 mkdir -p ~/hotspray_ws/src && cd ~/hotspray_ws/src
 
 # Download demo repository
-git clone https://github.com/bierm4nn/hotspray_demo.git
+git clone https://github.com/bi3ri/hotspray.git
 
 # Download dependencies
 wstool init .
 wstool merge ~/hotspray_ws/src/hotspray/hotspray.rosinstall
 wstool up
 
-wstool merge --merge-keep ~/hotspray_ws/src/tesserct/dependencies.rosinstall
-wstool merge --merge-keep ~/hotspray_ws/src/tesseract_planning/dependencies.rosinstall
+wstool merge --merge-keep ~/hotspray_ws/src/tesseract_ros/dependencies.rosinstall
 wstool up
 
 

@@ -1,9 +1,0 @@
-<Profile name="TrajoptDefaultPlanProfile" version="1.0.0">
-    <Planner type="1">
-        <TrajoptPlanProfile>
-            <CartesianCoefficients>10</CartesianCoefficients>
-            <JointCoefficients>00</JointCoefficients>
-            <Term type="2"/>
-        </TrajoptPlanProfile>
-    </Planner>
-</Profile>

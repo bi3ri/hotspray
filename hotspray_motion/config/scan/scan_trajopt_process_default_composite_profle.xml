@@ -20,21 +20,21 @@
             </CollisionConstraintConfig>
             <SmoothVelocities>
                 <Enabled>true</Enabled>
-                <Coefficients>1</Coefficients>
+                <Coefficients>20</Coefficients>
             </SmoothVelocities>
             <SmoothAccelerations>
-                <Enabled>false</Enabled>
-                <Coefficients>1</Coefficients>
+                <Enabled>true</Enabled>
+                <Coefficients>20</Coefficients>
             </SmoothAccelerations>
             <SmoothJerks>
                 <Enabled>true</Enabled>
-                <Coefficients>1</Coefficients>
+                <Coefficients>20</Coefficients>
             </SmoothJerks>
             <AvoidSingularity>
                 <Enabled>false</Enabled>
-                <Coefficient>3</Coefficient>
+                <Coefficient>20</Coefficient>
             </AvoidSingularity>
-            <LongestValidSegmentFraction>0.01</LongestValidSegmentFraction>
+            <LongestValidSegmentFraction>0.001</LongestValidSegmentFraction>
             <LongestValidSegmentLength>0.01</LongestValidSegmentLength>
         </TrajoptCompositeProfile>
     </Planner>
