@@ -27,12 +27,12 @@
                 <Coefficients>20</Coefficients>
             </SmoothAccelerations>
             <SmoothJerks>
-                <Enabled>true</Enabled>
-                <Coefficients>20</Coefficients>
+                <Enabled>false</Enabled>
+                <Coefficients>0</Coefficients>
             </SmoothJerks>
             <AvoidSingularity>
                 <Enabled>false</Enabled>
-                <Coefficient>20</Coefficient>
+                <Coefficient>0</Coefficient>
             </AvoidSingularity>
             <LongestValidSegmentFraction>0.001</LongestValidSegmentFraction>
             <LongestValidSegmentLength>0.01</LongestValidSegmentLength>

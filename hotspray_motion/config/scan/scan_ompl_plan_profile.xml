@@ -3,21 +3,36 @@
         <OMPLPlanProfile>
             <Planners>
 
+                <!-- SBL = 0,
+                EST = 1,
+                LBKPIECE1 = 2,
+                BKPIECE1 = 3,
+                KPIECE1 = 4,
+                BiTRRT = 5,
+                RRT = 6,
+                RRTConnect = 7,
+                RRTstar = 8,
+                TRRT = 9,
+                PRM = 10,
+                PRMstar = 11,
+                LazyPRMstar = 12,
+                SPARS = 13 -->
+                
                 <Planner type="12">
                     <LazyPRMstar>
-                        <Range>0.0</Range>
+                        <Range>3.0</Range>
                     </LazyPRMstar>
                 </Planner>
 
-                                <Planner type="12">
+                <Planner type="12">
                     <LazyPRMstar>
-                        <Range>0.0</Range>
+                        <Range>3.0</Range>
                     </LazyPRMstar>
                 </Planner>
 
-                                <Planner type="12">
+                <Planner type="12">
                     <LazyPRMstar>
-                        <Range>0.0</Range>
+                        <Range>3.0</Range>
                     </LazyPRMstar>
                 </Planner>
                 

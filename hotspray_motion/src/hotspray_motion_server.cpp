@@ -29,7 +29,7 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 #include <tesseract_motion_planners/ompl/profile/ompl_profile.h>
 #include <tesseract_motion_planners/ompl/profile/ompl_default_plan_profile.h>
 
-#include <tesseract_motion_planners/core/uterwischtils.h>
+#include <tesseract_motion_planners/core/utils.h>
 #include <tesseract_visualization/markers/toolpath_marker.h>
 #include <tesseract_common/resource_locator.h>
 
@@ -278,10 +278,6 @@ hotspray_msgs::GenerateScanTrajectory::Response &res)
 
   auto trajopt_freespace_composite_profile = std::make_shared<TrajOptDefaultCompositeProfile>(trajOptCompositeFromXMLFile(trajopt_freespace_default_composite_profile_path));
   auto trajopt_process_plan_profile = std::make_shared<TrajOptDefaultPlanProfile>();
-  trajopt_process_plan_profile->cartesian_coeff = Eigen::VectorXd::Constant(6, 1, 5);
-  trajopt_process_plan_profile->cartesian_coeff(3) = 2;
-  trajopt_process_plan_profile->cartesian_coeff(4) = 2;
-  trajopt_process_plan_profile->cartesian_coeff(5) = 0;
   auto trajopt_process_composite_profile = std::make_shared<TrajOptDefaultCompositeProfile>(trajOptCompositeFromXMLFile(trajopt_process_default_composite_profile_path));
 
   auto iterative_spline_parameterization_profile_process = std::make_shared<IterativeSplineParameterizationProfile>();
@@ -301,7 +297,7 @@ hotspray_msgs::GenerateScanTrajectory::Response &res)
 
   // Create Process Planning Request
   ProcessPlanningRequest request;
-  request.name = process_planner_names::RASTER_CT_PLANNER_NAME;
+  request.name = process_planner_names::RASTER_FT_PLANNER_NAME;
 
   // request.instructions = Instruction(program);
   request.instructions = Instruction(program);
@@ -435,12 +431,12 @@ hotspray_msgs::GenerateSprayTrajectory::Response &res)
   std::string trajopt_process_default_composite_profile_path;
   std::string trajopt_freespace_default_composite_profile_path;
   std::string ompl_plan_transition_profile_path;
-  std::string ompl_plan_freespace_profilepath;
+  std::string ompl_plan_freespace_profile_path;
 
   ph_.getParam("spray_trajopt_process_default_composite_profile_path", trajopt_process_default_composite_profile_path);
   ph_.getParam("spray_trajopt_freespace_default_composite_profile_path", trajopt_freespace_default_composite_profile_path);
   ph_.getParam("spray_ompl_transition_plan_profile_path", ompl_plan_transition_profile_path);
-  ph_.getParam("spray_ompl_start_plan_profile_path", ompl_plan_freespace_profilepath);
+  ph_.getParam("spray_ompl_freespace_plan_profile_path", ompl_plan_freespace_profile_path);
 
   // std::vector<Eigen::Isometry3d> spray_eigen_samples;
   // auto descartes_plan_profile = std::make_shared<DescartesDefaultPlanProfileF>();
@@ -472,7 +468,7 @@ hotspray_msgs::GenerateSprayTrajectory::Response &res)
   //                                               rz_resolution);
   // };
 
-  auto ompl_freespace_profile = std::make_shared<OMPLDefaultPlanProfile>(omplPlanFromXMLFile(ompl_plan_freespace_profilepath));
+  auto ompl_freespace_profile = std::make_shared<OMPLDefaultPlanProfile>(omplPlanFromXMLFile(ompl_plan_freespace_profile_path));
   auto ompl_transiton_profile = std::make_shared<OMPLDefaultPlanProfile>(omplPlanFromXMLFile(ompl_plan_transition_profile_path));
 
   auto trajopt_freespace_plan_profile = std::make_shared<TrajOptDefaultPlanProfile>();
@@ -481,9 +477,14 @@ hotspray_msgs::GenerateSprayTrajectory::Response &res)
   auto trajopt_freespace_composite_profile = std::make_shared<TrajOptDefaultCompositeProfile>(trajOptCompositeFromXMLFile(trajopt_freespace_default_composite_profile_path));
 
   auto trajopt_process_plan_profile = std::make_shared<TrajOptDefaultPlanProfile>(); 
+  trajopt_process_plan_profile->cartesian_coeff = Eigen::VectorXd::Constant(6, 1, 5);
+  trajopt_process_plan_profile->cartesian_coeff(3) = 2;
+  trajopt_process_plan_profile->cartesian_coeff(4) = 2;
+  trajopt_process_plan_profile->cartesian_coeff(5) = 0;
   auto trajopt_process_composite_profile = std::make_shared<TrajOptDefaultCompositeProfile>(trajOptCompositeFromXMLFile(trajopt_process_default_composite_profile_path));
   auto trajopt_process_solver_profile = std::make_shared<TrajOptDefaultSolverProfile>();
-  trajopt_process_solver_profile->opt_info.cnt_tolerance= 10.0;
+  trajopt_process_solver_profile->opt_info.cnt_tolerance= 1.0;
+
 
   // Create Program
   CompositeInstruction program = createSprayProgram(req.raster_array, mi_);
@@ -508,7 +509,7 @@ hotspray_msgs::GenerateSprayTrajectory::Response &res)
 
   profiles->addProfile<TrajOptPlanProfile>(FREESPACE_PROFILE, trajopt_freespace_plan_profile);
   profiles->addProfile<TrajOptCompositeProfile>(FREESPACE_PROFILE, trajopt_freespace_composite_profile);
-  profiles->addProfile<OMPLPlanProfile>(FREESPACE_PROFILE, ompl_FREESPACE_PROFILE);
+  profiles->addProfile<OMPLPlanProfile>(FREESPACE_PROFILE, ompl_freespace_profile);
 
   profiles->addProfile<TrajOptPlanProfile>(PROCESS_PROFILE, trajopt_process_plan_profile);
   profiles->addProfile<TrajOptCompositeProfile>(PROCESS_PROFILE, trajopt_process_composite_profile);

@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <launch>
   <arg name="debug" default="true" />
-  <!-- <arg name="debug_poses_path" default="/home/bi3ri/hotspray_ws/src/hotspray/hotspray_application/data/spray/default.poses.json" /> -->
-  <arg name="debug_poses_path" default="/home/bi3ri/hotspray_ws/src/hotspray/hotspray_application/data/scan/default.poses.json" />
+  <arg name="debug_poses_path" default="/home/bi3ri/hotspray_ws/src/hotspray/hotspray_application/data/spray/default.poses.json" />
+  <!-- <arg name="debug_poses_path" default="/home/bi3ri/hotspray_ws/src/hotspray/hotspray_application/data/scan/default.poses.json" /> -->
 
   <node name="hotspray_motion" pkg="hotspray_motion" type="hotspray_motion_node" output="screen">
     <param name="debug" value="$(arg debug)"/>
@@ -15,7 +15,7 @@
 
     <param name="spray_trajopt_process_default_composite_profile_path" value="$(find hotspray_motion)/config/spray/spray_trajopt_process_default_composite_profle.xml"/>
     <param name="spray_trajopt_freespace_default_composite_profile_path" value="$(find hotspray_motion)/config/spray/spray_trajopt_freespace_default_composite_profle.xml"/>
-    <param name="spray_ompl_start_plan_profile_path" value="$(find hotspray_motion)/config/spray/spray_ompl_start_plan_profile.xml"/>
+    <param name="spray_ompl_freespace_plan_profile_path" value="$(find hotspray_motion)/config/spray/spray_ompl_freespace_plan_profile.xml"/>
     <param name="spray_ompl_transition_plan_profile_path" value="$(find hotspray_motion)/config/spray/spray_ompl_transition_plan_profile.xml"/>
 
     <!-- <param name="spray_z_freedom" value="0.001"/>
@@ -28,9 +28,4 @@
     <param name="spray_rz_resolution" value="1.0"/> -->
 
   </node>
-</launch>    <!-- <group name="manipulator_camera">
-        <chain base_link="world" tip_link="camera_link"/>
-    </group>
-    <group name="manipulator_tcp">
-        <chain base_link="world" tip_link="tcp_frame"/>
-    </group> -->
+</launch>

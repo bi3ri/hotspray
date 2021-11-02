@@ -92,5 +92,9 @@
       <child link="hotspray_workcell_center"/>
     </joint>
 
+    <gazebo reference="hotspray_workcell_center">
+      <material>Gazebo/Grey</material>
+    </gazebo>
+
   </xacro:macro>
 </robot>

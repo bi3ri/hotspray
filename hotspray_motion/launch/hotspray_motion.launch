@@ -14,7 +14,7 @@
 
     <param name="spray_trajopt_process_default_composite_profile_path" value="$(find hotspray_motion)/config/spray/spray_trajopt_process_default_composite_profle.xml"/>
     <param name="spray_trajopt_freespace_default_composite_profile_path" value="$(find hotspray_motion)/config/spray/spray_trajopt_freespace_default_composite_profle.xml"/>
-    <param name="spray_ompl_start_plan_profile_path" value="$(find hotspray_motion)/config/spray/spray_ompl_start_plan_profile.xml"/>
+    <param name="spray_ompl_freespace_plan_profile_path" value="$(find hotspray_motion)/config/spray/spray_ompl_freespace_plan_profile.xml"/>
     <param name="spray_ompl_transition_plan_profile_path" value="$(find hotspray_motion)/config/spray/spray_ompl_transition_plan_profile.xml"/>
 
     <!-- <param name="spray_z_freedom" value="0.001"/>
