@@ -52,9 +52,9 @@
       </joint> -->
 
     <!-- joint between fixture and hotspray -->
-       <joint name="hotspray_extruder_joint" type="fixed">
+      <joint name="hotspray_extruder_joint" type="fixed">
         <parent link="${parent}" />
-      <child link="hotspray_extruder" />
+          <child link="hotspray_extruder" />
         <xacro:insert_block name="origin"/>
       </joint>
 

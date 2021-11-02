@@ -133,7 +133,7 @@ This is the Gazebo URDF model for the Intel RealSense D435 camera
       	<depthOpticalframeName>${depth_optical_frame}</depthOpticalframeName>
       	<infrared1OpticalframeName>${infrared1_optical_frame}</infrared1OpticalframeName>
       	<infrared2OpticalframeName>${infrared2_optical_frame}</infrared2OpticalframeName>
-      	<rangeMinDepth>0.2</rangeMinDepth>
+      	<rangeMinDepth>0.1</rangeMinDepth>
       	<rangeMaxDepth>10.0</rangeMaxDepth>
       	<pointCloud>true</pointCloud>
       	<pointCloudCutoff>0.05</pointCloudCutoff>

@@ -15,10 +15,32 @@
         <xacro:insert_block name="origin"/>
       </joint>
 
+    <link name="hotspray_adapter">
+      <!-- <inertial>
+        <origin  xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
+        <mass value="0.0" />
+        <inertia ixx="0.0" ixy="0.0" ixz="0.0" iyy="0.0" iyz="0.0" izz="0.0" />
+      </inertial> -->
+      <visual>
+        <origin  xyz="-0.02 0 0.02" rpy="0 0 0" />
+          <geometry>
+            <box size="0.11 0.015 0.04"/>
+          </geometry>
+        <material name="">
+          <color rgba="0.8 0.8 0.9 1" />
+        </material>
+      </visual>
+      </link>
+
+      <joint name="hotspray_adapter_joint" type="fixed">
+        <parent link="${parent}"/>
+        <child link="hotspray_adapter"/>
+      </joint>
+
     <!-- camera -->  
       <!-- origin xyz="-0.035 -0.07 0.055" rpy="${-pi/2} ${-pi/2} ${pi/2}"  -->
     <xacro:hotspray_camera parent="hotspray_tool_link" sim="${sim}">
-      <origin xyz="0.03 0.0 0.05" rpy="${pi/2} ${-pi/4} 0" />
+      <origin xyz="0.02 0.014 0.04" rpy="${pi/2} ${-pi/4} 0" />
     </xacro:hotspray_camera>
 
     <!-- extruder -->  
@@ -30,7 +52,7 @@
       <!-- <origin xyz="-0.1 -0.04 0.04" rpy="${-pi/3} 0 ${pi}" /> -->
 
       <!-- in y direction -->
-      <origin xyz="-0.1 -0.04 0.04" rpy="${-pi/2} 0 ${pi}" />
+      <origin xyz="-0.08 0.0 0.04" rpy="${-pi/2} 0 ${pi}" />
 
       <!-- in z direction -->
       <!-- <origin xyz="-0.1 -0.04 0.04" rpy="0 0 ${pi}" /> -->
