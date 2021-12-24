@@ -36,7 +36,7 @@ source ~/hotspray_ws/devel/setup.bash
 ```
 
 ## Dependencies for packages
-```
+```shell
 # CUDA
 sudo apt install -y nvidia-cuda-toolkit 
 
