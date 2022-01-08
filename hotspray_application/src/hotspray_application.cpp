@@ -18,7 +18,6 @@
 #include <Eigen/Core>
 #include <Eigen/Geometry>
 
-
 #include "ur_msgs/SetIO.h"
 #include "ur_msgs/SetPayload.h"
 #include "ur_msgs/SetPayloadRequest.h"
@@ -322,7 +321,7 @@ bool HotsprayApplication::run()
         scan_markers = HotsprayUtils::convertToAxisMarkers(scan_pose_arrays, "world", "scan_poses");
         scan_pose_publisher_.publish(scan_markers);
         generateScanTrajectory(scan_pose_array, scan_trajectory);
-        HotsprayUtils::saveTrajectoryMsgToBagFile(scan_trajectory, spray_bag_trajectory_path);
+        HotsprayUtils::saveTrajectoryMsgToBagFile(scan_trajectory, scan_bag_trajectory_path);
 
         executeTrajectory(scan_trajectory);
 
@@ -337,7 +336,7 @@ bool HotsprayApplication::run()
         scan_pose_publisher_.publish(spray_markers);
 
         generateSprayTrajectory(spray_raster_array, spray_trajectory);
-        HotsprayUtils::saveTrajectoryMsgToBagFile(scan_trajectory, spray_bag_trajectory_path);
+        HotsprayUtils::saveTrajectoryMsgToBagFile(spray_trajectory, spray_bag_trajectory_path);
 
         executeTrajectory(spray_trajectory);
 
@@ -366,7 +365,7 @@ bool HotsprayApplication::run()
         scan_pose_publisher_.publish(spray_markers);
 
         generateSprayTrajectory(spray_raster_array, spray_trajectory);
-        HotsprayUtils::saveTrajectoryMsgToBagFile(scan_trajectory, spray_bag_trajectory_path);
+        HotsprayUtils::saveTrajectoryMsgToBagFile(spray_trajectory, spray_bag_trajectory_path);
 
         executeTrajectory(spray_trajectory);
         return 0;
@@ -394,6 +393,7 @@ bool HotsprayApplication::run()
         scan_pose_publisher_.publish(spray_markers);
 
         generateSprayTrajectory(spray_raster_array, spray_trajectory);
+        HotsprayUtils::saveTrajectoryMsgToBagFile(spray_trajectory, spray_bag_trajectory_path);
 
         executeTrajectory(spray_trajectory);
         return 0;

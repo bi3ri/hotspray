@@ -7,6 +7,7 @@
 #include "eigen_conversions/eigen_msg.h" 
 #include <Eigen/Geometry>
 #include <tinyxml2.h>
+#include <chrono>
 
 #include <tesseract_common/macros.h>
 TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
@@ -257,6 +258,7 @@ CompositeInstruction HotsprayMotionServer::createScanProgram(
 bool HotsprayMotionServer::generateScanTrajectory(hotspray_msgs::GenerateScanTrajectory::Request &req,
 hotspray_msgs::GenerateScanTrajectory::Response &res)
 {
+  auto start_time = std::chrono::high_resolution_clock::now();
   // Create manipulator information for program
   mi_.manipulator = "manipulator";
   mi_.tcp_frame = "camera_orbit_frame"; //ToolCenterPoint("tcp_frame", false);
@@ -321,19 +323,27 @@ hotspray_msgs::GenerateScanTrajectory::Response &res)
   ProcessPlanningFuture response = planning_server.run(request);
   planning_server.waitForAll();
 
+
   // Plot Process Trajectory
-  plotter_->waitForInput();
   const auto& ci = response.results->as<CompositeInstruction>();
   tesseract_common::Toolpath toolpath = toToolpath(ci, *env_);
   tesseract_common::JointTrajectory trajectory = toJointTrajectory(ci);
   auto state_solver = env_->getStateSolver();
   plotter_->plotMarker(tesseract_visualization::ToolpathMarker(toolpath));
-  plotter_->plotTrajectory(trajectory, *state_solver);
-  
+
   trajectory_msgs::JointTrajectory traj_msg;
   toMsg(traj_msg, trajectory);
   res.traj = traj_msg;
 
+  auto end_time = std::chrono::high_resolution_clock::now();
+  auto duration = std::chrono::duration_cast<std::chrono::seconds>(end_time - start_time);
+
+  ROS_INFO("Computation of scan trajectory took %d seconds!", duration);
+  ROS_INFO("Final trajectory is collision free");
+
+
+  plotter_->waitForInput();
+  plotter_->plotTrajectory(trajectory, *state_solver);
   return true;
 }
 
@@ -422,6 +432,7 @@ CompositeInstruction HotsprayMotionServer::createSprayProgram(
 bool HotsprayMotionServer::generateSprayTrajectory(hotspray_msgs::GenerateSprayTrajectory::Request &req,
 hotspray_msgs::GenerateSprayTrajectory::Response &res)
 {
+  auto start_time = std::chrono::high_resolution_clock::now();
   // Create manipulator information for program
   mi_.manipulator = "manipulator";
   mi_.tcp_frame = "tcp_frame"; //ToolCenterPoint("tcp_frame", false);
@@ -523,19 +534,23 @@ hotspray_msgs::GenerateSprayTrajectory::Response &res)
   planning_server.waitForAll();
 
   // Plot Process Trajectory
-  plotter_->waitForInput();
   const auto& ci = response.results->as<CompositeInstruction>();
   tesseract_common::Toolpath toolpath = toToolpath(ci, *env_);
   tesseract_common::JointTrajectory trajectory = toJointTrajectory(ci);
   auto state_solver = env_->getStateSolver();
-  plotter_->plotMarker(tesseract_visualization::ToolpathMarker(toolpath));
-  plotter_->plotTrajectory(trajectory, *state_solver);
-  
-  ROS_INFO("Final trajectory is collision free");
+
+  auto end_time = std::chrono::high_resolution_clock::now();
+
   trajectory_msgs::JointTrajectory traj_msg;
   toMsg(traj_msg, trajectory);
   res.traj = traj_msg;
 
+  auto duration = std::chrono::duration_cast<std::chrono::seconds>(end_time - start_time);
+
   ROS_INFO("Final trajectory is collision free");
+  ROS_INFO("Computation of spray trajectory took %d seconds!", duration);
+
+  plotter_->waitForInput();
+  plotter_->plotTrajectory(trajectory, *state_solver);
   return true;
 }
