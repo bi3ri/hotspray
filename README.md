@@ -1,6 +1,8 @@
 ## HOTSPRAY
 
-#TODO GIF
+![scan](.graphics/scan01.gif)
+![spray](.graphics/spray01.gif)
+
 
 ## Hotspray ROS Packages
 * **hotspray_application** - maps the entire workflow and sends calls to other packages depending on the workflow state <br>
