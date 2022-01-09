@@ -5,8 +5,7 @@
 #include <control_msgs/FollowJointTrajectoryAction.h>
 
 #include <Eigen/Geometry>
-#include "eigen_conversions/eigen_msg.h" //conversion posemsg -> eigen
-
+#include "eigen_conversions/eigen_msg.h"
 
 #include <geometry_msgs/PoseArray.h>
 

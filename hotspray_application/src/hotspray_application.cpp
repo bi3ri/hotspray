@@ -127,8 +127,6 @@ bool HotsprayApplication::generateTubularToolpath(std::vector<geometry_msgs::Pos
 
     if(tubular_toolpath_client_.call(tubular_toolpath_srv))
     {
-        // std::vector<geometry_msgs::PoseArray> 
-        // eigen_pose_array = HotsprayUtils::convertToEigenPoseArray(tubular_toolpath_srv.response.toolpath_vector_array);
         pose_arrays = tubular_toolpath_srv.response.raster_array;
 
         try{
@@ -229,7 +227,6 @@ bool HotsprayApplication::startSpray(){
     ur_msgs::SetIO set_io;
     set_io.request.pin = 1; // pin
     set_io.request.state = 1; // state
-    
     // set_io.request.FUN_SET_DIGITAL_OUT = 1; //state
     // set_io.request.FUN_SET_ANALOG_OUT = 3;
 

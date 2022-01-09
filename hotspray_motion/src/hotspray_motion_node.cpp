@@ -11,19 +11,6 @@ void sendDebugMsg(HotsprayMotionServer& motion_server, std::string debug_poses_p
 
     req.raster_array = pose_arrays;
     motion_server.generateSprayTrajectory(req, res);
-
-
-    // hotspray_msgs::GenerateScanTrajectory::Request req;
-    // hotspray_msgs::GenerateScanTrajectory::Response res;
-
-    // geometry_msgs::PoseArray pose_array;
-    // HotsprayUtils::loadPoseArrayMsgFromJsonFile(pose_array, debug_poses_path);
-
-    // req.pose_array = pose_array;
-    // motion_server.generateScanTrajectory(req, res);
-
-
-
 }
 
 int main(int argc, char** argv)
