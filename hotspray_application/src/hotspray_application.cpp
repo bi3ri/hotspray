@@ -292,7 +292,7 @@ bool HotsprayApplication::run()
             createScanPoses(scan_pose_array);
             HotsprayUtils::savePoseArrayMsgToJsonFile(scan_pose_array, scan_json_pose_array_path);
 
-            ROS_INFO("\nSucessfully created and saved scan poses!");
+            ROS_INFO("\nSuccessfully created and saved scan poses!");
             return 0;
 
         }else if(action_ == "load_scan_poses")
@@ -329,7 +329,7 @@ bool HotsprayApplication::run()
         }else if(action_ == "load_scan_trajectory")
         {
             HotsprayUtils::loadPoseArrayMsgFromJsonFile(scan_pose_array, scan_json_pose_array_path);
-            HotsprayUtils::loadTrajectoryMsgFromBagFile(scan_trajectory, action_file_name_);
+            HotsprayUtils::loadTrajectoryMsgFromBagFile(scan_trajectory, scan_bag_trajectory_path);
 
             std::vector<geometry_msgs::PoseArray> scan_pose_arrays = {scan_pose_array};
             visualization_msgs::MarkerArray scan_markers;
